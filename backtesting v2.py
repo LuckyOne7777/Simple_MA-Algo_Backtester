@@ -7,6 +7,9 @@ import math
 import os
 import random
 
+#AIG, GME AMC,
+# position sizing may be acting weird, double check that 
+#also it highkey sucks lol 
 
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
@@ -41,7 +44,7 @@ def calculate_atr(data, window):
     true_range = pd.DataFrame({
         'tr1': tr1,
         'tr2': tr2,
-        'tr3': tr3
+        'tr3': tr3,
     })
 
     # Find the maximum of the three True Range components for each row
@@ -59,7 +62,7 @@ sp500_tickers = sp500_table["Symbol"].tolist()
 
 # Choose a random ticker
 #ticker = random.choice(sp500_tickers)
-ticker = "NVDA"
+ticker = "IONQ"
 if "." in ticker:
     ticker = ticker.replace(".", "-")
 
@@ -77,12 +80,15 @@ trade = pd.DataFrame(
 columns=[
 'NUMBER',
 'STOPLOSS',
-'SHARES_BOUGHT'
-'DATE'
+'SHARES_BOUGHT',
+'DATE',
 'PRICE_BOUGHT',
 'EXITDATE',
 'ACTIVE?',
-'CASH'
+'W_TRADE?',
+'INTIAL_VAL',
+'VALUE',
+'LAST_UPDATE',
 ]
 )
 total_position = 0
@@ -109,48 +115,89 @@ if not data_check.empty:
         cash = capital
         portfolio_value = []
         control_portfolio_value = []
-        trade_size = cash * 0.05
+        trade_size = float(cash * 0.05)
 
         control_capital = capital
         trade_num = 0
+        buy_num = 0
 
         for i in range(200, len(data)):    
-            last_SMA_50 = data['SMA_50'].iloc[i]
-            last_SMA_200 = data['SMA_200'].iloc[i]
-            last_RSI = data['RSI'].iloc[i]
-            last_atr = data['ATR'].iloc[i]
-            price = float(data['Close'].iloc[i])
-            yesterdays_price = float(data['Close'].iloc[i - 1])
-            last_week_price = float(data['Close'].iloc[i - 5])
+            last_SMA_50 = data.at[data.index[i],'SMA_50']
+            last_SMA_200 = data.at[data.index[i],'SMA_200']
+            last_RSI = data.at[data.index[i],'RSI']
+            last_atr = data.at[data.index[i],'ATR']
+            price = round(data.at[data.index[i],'Open'], 2)
+            yesterdays_price = round(data.at[data.index[i - 1],'Close'], 2)
+            last_week_price = round(data.at[data.index[i - 5], 'Close'], 2)
             first_price = float(data['Close'].iloc[200])
-            num_of_years = len(data) / 365
+            num_of_years = len(data) / 251
             control_position = math.floor(starting_cap / first_price)
             cash_per_trade = cash * 0.05
+            date = data.index[i]
 
             if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
                 continue
-            if position == 0 and last_SMA_50 > last_SMA_200 and last_RSI < 70:
-                    position = math.floor(cash_per_trade / price)
-                    cash -= position * price
-                    trade_num += 1
+            #if buy conditions are met, buy and add a row to trade tracking df
+            if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
+                position =  math.floor(cash_per_trade / price)
+                cash -= position * price
+                trade_num += 1
+                buy_num += 1
+                stoploss = round((price - (last_atr * 3)), 2)
 
-            elif position and price >= last_week_price * 0.90:
-                    position = math.floor(cash_per_trade / price)
-                    cash -= position * price
-                    trade_num += 1
+                trade.loc[len(trade)] = {
+                    'NUMBER':buy_num,
+                    'STOPLOSS':stoploss,
+                    'SHARES_BOUGHT': position,
+                    'DATE': date,
+                    'PRICE_BOUGHT': price,
+                    'ACTIVE?': True,
+                    'VALUE': int(position * price),
+                    'INTIAL_VAL':int(position * price),
+                    'EXITDATE':None,
+                    'W_TRADE?': None,
+                    'LAST_UPDATE': price,
+                }
 
-            elif position > 0 and (last_SMA_50 < last_SMA_200 or price <= yesterdays_price * 0.90 or price <= last_week_price * 0.90):
-                    cash += position * price
-                    trade_num += 1
-                    position = 0
 
+            #check all data rows for still active trades, and then check if stoploss has been met
+            # or needs to be updated (broken)
+            if len(trade) > 0:
+                for l in range (len(trade)):
+                    if trade.at[trade.index[l],'ACTIVE?'] == True:
+                        #conditional for updating stoploss
+
+                        new_stop = price - (2 * last_atr)
+
+                        if price >=  1.2 * trade.at[trade.index[l],'LAST_UPDATE'] and new_stop > trade.at[trade.index[l], 'STOPLOSS']:
+                            stoploss = price - float((last_atr * 3))
+                            trade.at[trade.index[l], 'LAST_UPDATE'] = price
+                            trade.at[trade.index[l], 'STOPLOSS'] = stoploss
+
+                    #conditional for selling
+                        if price < trade.at[trade.index[l],'STOPLOSS']:
+                            cash += trade.at[trade.index[l],'SHARES_BOUGHT'] * price
+
+                            trade.at[trade.index[l], 'EXITDATE'] = date
+                            trade.at[trade.index[l], 'ACTIVE?'] = False
+
+                            if trade.at[trade.index[l], 'VALUE'] > trade.at[trade.index[l], 'INTIAL_VAL']:
+
+                                trade.at[trade.index[l], 'W_TRADE?'] = True
+                            else:
+                                trade.at[trade.index[l], 'W_TRADE?'] = False
+
+                        total_position += trade.at[trade.index[l],'SHARES_BOUGHT']
+                        trade.at[trade.index[l],'VALUE'] = int(trade.at[trade.index[l],'SHARES_BOUGHT'] * price)
+
+                    
             #update all the values 
             total_value = total_position * price + cash
+            total_position = 0
+            position = 0
             total_control_value = control_position * price
             portfolio_value.append(total_value)
             control_portfolio_value.append(total_control_value)
-
-            print(trade.head())
 
         portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Portfolio_Value': portfolio_value})
         portfolio_df.set_index('Date', inplace=True)
@@ -212,9 +259,6 @@ if not data_check.empty:
         plt.title(f"Backtest Results for {ticker}")
         plt.grid(True)
         plt.show()
-
+        print(trade.head())
+        print(trade.tail())
         print(f"Results saved successfully! Done with {ticker}")
-
-#AIG
-#add multiple trading and a table for tracking buying and selling for each one
-#track last price when it bought ad=nd upate stoploss if it exceeds that value, explains why its not selling

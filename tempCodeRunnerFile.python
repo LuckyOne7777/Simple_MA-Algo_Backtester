@@ -1,4 +1,0 @@
-import pandas as pd
-
-df = pd.read_csv('text1.csv')
-print(df.head())
