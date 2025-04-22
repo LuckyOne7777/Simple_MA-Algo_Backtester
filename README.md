@@ -73,7 +73,7 @@ The goal was just to:
 
   I plan to expand my V2, here are some of my following ideas:
 
-  reduce maxdrawdowns and refine logic
+  refine current logic
   centralized and more detailed CSV file
   Converting algo into a modular framework
 

@@ -5,11 +5,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import math
 import os
-import random
-
-#AIG, GME AMC,
-# position sizing may be acting weird, double check that 
-#also it highkey sucks lol 
 
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
@@ -54,27 +49,6 @@ def calculate_atr(data, window):
     atr = true_range.rolling(window=window).mean()
     return atr
 
-
-# Get list of S&P 500 tickers
-url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-sp500_table = pd.read_html(url)[0]
-sp500_tickers = sp500_table["Symbol"].tolist()
-
-# Choose a random ticker
-#ticker = random.choice(sp500_tickers)
-ticker = "IONQ"
-if "." in ticker:
-    ticker = ticker.replace(".", "-")
-
-sp500 = "^GSPC"
-vix = "^VIX"
-
-buy_num = 0
-stoploss = 0
-active_trades = 0
-
-data_check = yf.download(ticker, period="max", auto_adjust= False)
-
 #create dataframe for tracking trades 
 trade = pd.DataFrame(
 columns=[
@@ -91,11 +65,30 @@ columns=[
 'LAST_UPDATE',
 ]
 )
-total_position = 0
+
+
+# Get list of S&P 500 tickers
+url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+sp500_table = pd.read_html(url)[0]
+sp500_tickers = sp500_table["Symbol"].tolist()
+
+# Choose a random ticker
+ticker = "TSLA"
+if "." in ticker:
+    ticker = ticker.replace(".", "-")
+
+sp500 = "^GSPC"
+
+#get the maximium timeframe for the ticker
+data_check = yf.download(ticker, period="max", auto_adjust= False)
+
+
+
 if not data_check.empty:
     first_date = data_check.index[0]
     last_date = data_check.index[-1]
     data = yf.download(ticker, start=first_date, end=last_date, auto_adjust=False)
+
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
     data.columns = data.columns.get_level_values(0)
@@ -109,29 +102,42 @@ if not data_check.empty:
         data['RSI'] = calculate_rsi(data)
         data['ATR'] = calculate_atr(data, 14)
 
+        #define starting capital and varibles
         capital = 10000
         starting_cap = capital
         position = 0
         cash = capital
         portfolio_value = []
         control_portfolio_value = []
-        trade_size = float(cash * 0.05)
-
         control_capital = capital
         trade_num = 0
         buy_num = 0
+        buy_num = 0
+        stoploss = 0
+        active_trades = 0
+        total_position = 0
+        current_year = 0
 
-        for i in range(200, len(data)):    
+        #for loop for number of trading days avalible for the ticker
+        print("starting loop, please stand by..")
+        for i in range(200, len(data)):
             last_SMA_50 = data.at[data.index[i],'SMA_50']
             last_SMA_200 = data.at[data.index[i],'SMA_200']
             last_RSI = data.at[data.index[i],'RSI']
             last_atr = data.at[data.index[i],'ATR']
+
             price = round(data.at[data.index[i],'Open'], 2)
+            if price == 0:
+                continue
+            price = data.at[data.index[i],'Open']
             yesterdays_price = round(data.at[data.index[i - 1],'Close'], 2)
             last_week_price = round(data.at[data.index[i - 5], 'Close'], 2)
             first_price = float(data['Close'].iloc[200])
+
             num_of_years = len(data) / 251
             control_position = math.floor(starting_cap / first_price)
+
+            #postition sizing of 5% of total value to trade
             cash_per_trade = cash * 0.05
             date = data.index[i]
 
@@ -139,6 +145,7 @@ if not data_check.empty:
                 continue
             #if buy conditions are met, buy and add a row to trade tracking df
             if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
+
                 position =  math.floor(cash_per_trade / price)
                 cash -= position * price
                 trade_num += 1
@@ -160,8 +167,8 @@ if not data_check.empty:
                 }
 
 
-            #check all data rows for still active trades, and then check if stoploss has been met
-            # or needs to be updated (broken)
+#check all data rows for still active trades, and then check if stoploss has been met, or needs to be updated
+
             if len(trade) > 0:
                 for l in range (len(trade)):
                     if trade.at[trade.index[l],'ACTIVE?'] == True:
@@ -190,11 +197,13 @@ if not data_check.empty:
                         total_position += trade.at[trade.index[l],'SHARES_BOUGHT']
                         trade.at[trade.index[l],'VALUE'] = int(trade.at[trade.index[l],'SHARES_BOUGHT'] * price)
 
-                    
-            #update all the values 
+            if i % 252 == 0:
+                current_year+= 1
+                #'max_drawdown': f"{round(max_drawdown * 100, 2)}%"
+                print(f"Year {current_year}: done! {round(num_of_years - current_year)} year(s) to go.")
+            #update all the values at end of that day 
             total_value = total_position * price + cash
             total_position = 0
-            position = 0
             total_control_value = control_position * price
             portfolio_value.append(total_value)
             control_portfolio_value.append(total_control_value)
@@ -208,6 +217,9 @@ if not data_check.empty:
         if len(portfolio_value) == 0 or len(control_portfolio_value) == 0:
             raise ValueError("Cannot save: Empty portfolio data!")
 
+        
+
+        #calculate stats for CSV summary
         end_val = math.floor(portfolio_value[-1])
         trades_per_year = trade_num / num_of_years
         cagr = ((portfolio_value[-1] / starting_cap) ** (1 / num_of_years) - 1) * 100
@@ -216,7 +228,8 @@ if not data_check.empty:
         running_max = portfolio_df['Portfolio_Value'].cummax()
         drawdown = (portfolio_df['Portfolio_Value'] - running_max) / running_max
         max_drawdown = drawdown.min()
-        #make df to plot 
+
+        #DF for summary
         summary = pd.DataFrame([{
             'symbol': ticker,
             'end_val': f"${end_val:,.0f}",
@@ -241,14 +254,19 @@ if not data_check.empty:
             'running_max',
         ]
 
+        output_folder = "CSV files"
+        os.makedirs(output_folder, exist_ok=True)  # makes folder if it doesn't exist
+
+        file_path = os.path.join(output_folder, "MA_backtestV2.csv")
+
         summary.to_csv(
-            "MA_backtest.csv",
-            mode='a' if os.path.exists("MA_backtest.csv") else 'w',
-            header=not os.path.exists("MA_backtest.csv"),
+            file_path,
+            mode='a' if os.path.exists(file_path) else 'w',
+            header=not os.path.exists(file_path),
             index=False,
-            columns=ALL_COLUMNS
+            columns=ALL_COLUMNS,
         )
-        #plotting
+        #create a matplotlib plot
         plt.figure(figsize=(12, 6))
         plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
         plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
@@ -259,6 +277,7 @@ if not data_check.empty:
         plt.title(f"Backtest Results for {ticker}")
         plt.grid(True)
         plt.show()
+        #print  the head and tail of trade results
         print(trade.head())
         print(trade.tail())
         print(f"Results saved successfully! Done with {ticker}")
