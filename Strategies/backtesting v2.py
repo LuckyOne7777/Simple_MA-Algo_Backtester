@@ -73,7 +73,8 @@ sp500_table = pd.read_html(url)[0]
 sp500_tickers = sp500_table["Symbol"].tolist()
 
 # Choose a random ticker
-ticker = "TSLA"
+ticker = "HOOD"
+
 if "." in ticker:
     ticker = ticker.replace(".", "-")
 
@@ -200,7 +201,8 @@ if not data_check.empty:
             if i % 252 == 0:
                 current_year+= 1
                 #'max_drawdown': f"{round(max_drawdown * 100, 2)}%"
-                print(f"Year {current_year}: done! {round(num_of_years - current_year)} year(s) to go.")
+                print(f"Year {current_year}: done! {round(num_of_years - current_year)} year(s) left.")
+
             #update all the values at end of that day 
             total_value = total_position * price + cash
             total_position = 0
@@ -240,6 +242,7 @@ if not data_check.empty:
             'average': f"${avg_val:,.0f}",
             'max_drawdown': f"{round(max_drawdown * 100, 2)}%",
             'running_max': f"${running_max.iloc[-1]:,.0f}",
+            'version': "V2",
         }])
 
         ALL_COLUMNS = [
@@ -252,6 +255,7 @@ if not data_check.empty:
             'average',
             'max_drawdown',
             'running_max',
+            'version',
         ]
 
         output_folder = "CSV files"
@@ -259,6 +263,22 @@ if not data_check.empty:
 
         file_path = os.path.join(output_folder, "MA_backtestV2.csv")
 
+        if os.path.exists(file_path):
+            df_existing = pd.read_csv(file_path)
+                # Ensure all rows have the "version" column set to V2
+            df_existing["version"] = "V2"
+
+    # Append new summary
+            df_updated = pd.concat([df_existing, summary], ignore_index=True)
+
+    # Drop duplicates by 'symbol' and 'version' if needed
+            df_updated.drop_duplicates(subset=["symbol", "version"], keep="last", inplace=True)
+
+    # Save it back
+            df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+        else:
+            summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+      
         summary.to_csv(
             file_path,
             mode='a' if os.path.exists(file_path) else 'w',
@@ -278,6 +298,7 @@ if not data_check.empty:
         plt.grid(True)
         plt.show()
         #print  the head and tail of trade results
+
         print(trade.head())
         print(trade.tail())
         print(f"Results saved successfully! Done with {ticker}")

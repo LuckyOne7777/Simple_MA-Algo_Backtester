@@ -163,6 +163,7 @@ for j in range(1, len(main_tickers)):
                     'average': f"${avg_val:,.0f}",
                     'max_drawdown': f"{round(max_drawdown * 100, 2)}%",
                     'running_max': f"${running_max.iloc[-1]:,.0f}",
+                    'version': "V1"
                 }])
 
                 ALL_COLUMNS = [
@@ -175,6 +176,7 @@ for j in range(1, len(main_tickers)):
                     'average',
                     'max_drawdown',
                     'running_max',
+                    'version',
                 ]
 
                 summary.to_csv(

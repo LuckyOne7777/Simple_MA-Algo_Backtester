@@ -1,4 +1,4 @@
-symbol,end_val,winner,trades,cagr,median,average,max_drawdown,running_max,
+symbol,end_val,winner,trades,cagr,median,average,max_drawdown,running_max
 AOS,"$564,361",Benchmark,133.5,15.49%,"$61,869","$157,788",-62.78%,"$866,831"
 ABT,"$2,040,334",Benchmark,89.5,18.72%,"$396,909","$551,822",-45.26%,"$2,549,403"
 ABBV,"$64,011",Benchmark,90.4,26.12%,"$22,839","$28,388",-34.06%,"$68,773"
