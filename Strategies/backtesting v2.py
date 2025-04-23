@@ -261,7 +261,7 @@ if not data_check.empty:
         output_folder = "CSV files"
         os.makedirs(output_folder, exist_ok=True)  # makes folder if it doesn't exist
 
-        file_path = os.path.join(output_folder, "MA_backtestV2.csv")
+        file_path = os.path.join(output_folder, "MA_backtest.csv")
 
         if os.path.exists(file_path):
             df_existing = pd.read_csv(file_path)

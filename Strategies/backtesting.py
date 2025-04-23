@@ -63,7 +63,7 @@ main_tickers = tickers = [
 "PLD", "AMT", "CCI", "SPG", "EQIX"
 ]
 #example ticker
-ticker = "NVDA"
+ticker = "HOOD"
 sp500 = "^GSPC"
 
 try:
@@ -116,7 +116,7 @@ try:
                     cash -= position * price
                     trade_num += 1
                 #selling conditions
-                elif position > 0 and (last_SMA_50 < last_SMA_200 or price <= yesterdays_price * 0.90 or price <= last_week_price * 0.90):
+                elif position > 0 and (last_SMA_50 < last_SMA_200 or price <= yesterdays_price * 0.90):
                     cash += position * price
                     trade_num += 1
                     position = 0
@@ -155,7 +155,8 @@ try:
                 'median': f"${median_val:,.0f}",
                 'average': f"${avg_val:,.0f}",
                 'max_drawdown': f"{round(max_drawdown * 100, 2)}%",
-                'running_max': f"${running_max.iloc[-1]:,.0f}"
+                'running_max': f"${running_max.iloc[-1]:,.0f}",
+                'version' : "V1",
             }])
 
             ALL_COLUMNS = [
@@ -168,32 +169,50 @@ try:
                 'average',
                 'max_drawdown',
                 'running_max',
+                'version',
             ]
-            output_folder = "CSV files"
-            os.makedirs(output_folder, exist_ok=True)  # makes folder if it doesn't exist
+        output_folder = "CSV files"
+        os.makedirs(output_folder, exist_ok=True)  # makes folder if it doesn't exist
 
-            file_path = os.path.join(output_folder, "MA_backtest.csv")
-            #write results to file
-            summary.to_csv(
+        file_path = os.path.join(output_folder, "MA_backtest.csv")
+
+        if os.path.exists(file_path):
+                df_existing = pd.read_csv(file_path)
+                # Ensure all rows have the "version" column set to V2
+                df_existing["version"] = "V1"
+
+    # Append new summary
+        df_updated = pd.concat([df_existing, summary], ignore_index=True)
+
+    # Drop duplicates by 'symbol' and 'version' if needed
+        df_updated.drop_duplicates(subset=["symbol", "version"], keep="last", inplace=True)
+
+    # Save it back
+        df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+
+
+
+
+        summary.to_csv(
                 file_path,
                 mode='a' if os.path.exists(file_path) else 'w',
                 header=not os.path.exists(file_path),
                 index=False,
-                columns=ALL_COLUMNS
+                columns=ALL_COLUMNS,
             )
-            print("Results saved successfully!")
+        print("Results saved successfully!")
 
             #plot results
-            plt.figure(figsize=(12, 6))
-            plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
-            plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
-            plt.xlabel("Date")
-            plt.ylabel("Portfolio Value ($)")
-            plt.gca().yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
-            plt.legend()
-            plt.title(f"Backtest Results for {ticker}")
-            plt.grid(True)
-            plt.show()
+        plt.figure(figsize=(12, 6))
+        plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
+        plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
+        plt.xlabel("Date")
+        plt.ylabel("Portfolio Value ($)")
+        plt.gca().yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
+        plt.legend()
+        plt.title(f"Backtest Results for {ticker}")
+        plt.grid(True)
+        plt.show()
 
     else:
         print(f"Could not retrieve data for {ticker}")
