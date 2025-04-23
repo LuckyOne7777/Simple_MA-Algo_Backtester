@@ -2,7 +2,7 @@ README.md
 
 # Simple Trading Algo Backtest
 
-Hello, thanks for checking out my project! I'm just a high school student who's new to Python and experimenting with stock trading algorithms. This is my attempt at creating a somewhat passable algo using a basic moving average crossover strategy.
+Hello, thanks for checking out my project! I'm just a high school student who's new to Coding and experimenting with stock trading algorithms. This is my attempt at creating a somewhat passable algo using a basic moving average crossover strategy.
 
 ---
 
