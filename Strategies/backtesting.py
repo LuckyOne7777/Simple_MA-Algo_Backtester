@@ -5,9 +5,7 @@ import matplotlib.pyplot as plt
 import math
 import os
 import matplotlib.ticker as mtick
-
-#check max drawdown
-#remove some decimal places
+#IMPORTANT! running will bring a future warning, but it shouldnt affect performance
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
     gain = np.where(delta > 0, delta, 0)
@@ -64,8 +62,9 @@ main_tickers = tickers = [
 # Real Estate
 "PLD", "AMT", "CCI", "SPG", "EQIX"
 ]
+#example ticker
 ticker = "NVDA"
-sp500 = "^GSPC"  # Use Yahoo Finance symbol for S&P 500
+sp500 = "^GSPC"
 
 try:
     data_check = yf.download(ticker, period="max")
@@ -81,7 +80,7 @@ try:
             data['SMA_50'] = data['Close'].rolling(window=50).mean()
             data['SMA_200'] = data['Close'].rolling(window=200).mean()
             data['RSI'] = calculate_rsi(data)
-
+            #define vars
             capital = 10000
             starting_cap = capital
             position = 0
@@ -91,8 +90,9 @@ try:
 
             control_capital = capital
             trade_num = 0
-
+            #loop for each day 
             for i in range(200, len(data)):
+                #get pricing and SMA data
                 last_SMA_50 = data['SMA_50'].iloc[i]
                 last_SMA_200 = data['SMA_200'].iloc[i]
                 last_RSI = data['RSI'].iloc[i]
@@ -105,22 +105,22 @@ try:
 
                 if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
                     continue
-
+                    # algo doesnt have a position, golden cross formation and positive rsi, buy
                 if position == 0 and last_SMA_50 > last_SMA_200 and last_RSI < 70:
                     position = math.floor(cash / price)
                     cash -= position * price
                     trade_num += 1
-
+                #if price goes up 10% in 1 week, buy
                 elif position == 0 and price >= last_week_price * 0.90:
                     position = math.floor(cash / price)
                     cash -= position * price
                     trade_num += 1
-
+                #selling conditions
                 elif position > 0 and (last_SMA_50 < last_SMA_200 or price <= yesterdays_price * 0.90 or price <= last_week_price * 0.90):
                     cash += position * price
                     trade_num += 1
                     position = 0
-
+                #update values at end of each loop
                 total_value = position * price + cash
                 total_control_value = control_position * price
                 portfolio_value.append(total_value)
@@ -134,7 +134,8 @@ try:
 
             if len(portfolio_value) == 0 or len(control_portfolio_value) == 0:
                 raise ValueError("Cannot save: Empty portfolio data!")
-
+            
+            #calculate end values
             end_val = math.floor(portfolio_value[-1])
             trades_per_year = trade_num / num_of_years
             cagr = ((portfolio_value[-1] / starting_cap) ** (1 / num_of_years) - 1) * 100
@@ -143,7 +144,8 @@ try:
             running_max = portfolio_df['Portfolio_Value'].cummax()
             drawdown = (portfolio_df['Portfolio_Value'] - running_max) / running_max
             max_drawdown = drawdown.min()
-
+            
+            #CSV summary
             summary = pd.DataFrame([{
                 'symbol': ticker,
                 'end_val': f"${end_val:,}",
@@ -167,15 +169,21 @@ try:
                 'max_drawdown',
                 'running_max',
             ]
+            output_folder = "CSV files"
+            os.makedirs(output_folder, exist_ok=True)  # makes folder if it doesn't exist
 
+            file_path = os.path.join(output_folder, "MA_backtest.csv")
+            #write results to file
             summary.to_csv(
-                "MA_backtest.csv",
-                mode='a' if os.path.exists("MA_backtest.csv") else 'w',
-                header=not os.path.exists("MA_backtest.csv"),
+                file_path,
+                mode='a' if os.path.exists(file_path) else 'w',
+                header=not os.path.exists(file_path),
                 index=False,
                 columns=ALL_COLUMNS
             )
             print("Results saved successfully!")
+
+            #plot results
             plt.figure(figsize=(12, 6))
             plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
             plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
