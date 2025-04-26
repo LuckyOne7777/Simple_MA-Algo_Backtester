@@ -45,7 +45,7 @@ The goal was just to:
   pretty much the same algo as above, however loops through every S&P 500 stock and saves results
 
   - `MA_backtest.csv`:  
-  Outputs summary stats of the `backtesting.py` (planning to have a singular CSV file)
+  Outputs summary stats of both algos
 ---
 
 -`backtesting v2.py`
@@ -56,10 +56,6 @@ The goal was just to:
     dynamic ATR stop-loss
     actual postion sizing for trades
     trade DataFrame to track and manange multiple trades at once
-
--`MA_backtestingV2.py`
-  CSV file for V2
-
 
 ## Notes
 
@@ -74,8 +70,9 @@ The goal was just to:
   I plan to expand my V2, here are some of my following ideas:
 
   refine current logic
-  centralized and more detailed CSV file
+  more detailed CSV file
   Converting algo into a modular framework
+  switch to a specialized backtesting library once im comfortable with Python
 
 
 

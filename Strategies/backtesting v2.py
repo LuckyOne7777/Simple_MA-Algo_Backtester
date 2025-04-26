@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import math
 import os
+import time
+
 
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
@@ -49,6 +51,59 @@ def calculate_atr(data, window):
     atr = true_range.rolling(window=window).mean()
     return atr
 
+def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade):
+
+    if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
+                    return "hold"
+            #if buy conditions are met, buy and add a row to trade tracking df
+    if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
+        return "buy"
+    
+    if len(trade) > 0:
+        for l in range (len(trade)):
+             if trade.at[trade.index[l],'ACTIVE?'] == True:
+                        if price < trade.at[trade.index[l],'STOPLOSS']:
+                             return "sell"
+    return "hold"
+
+def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss):
+     result = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
+
+     if result == "buy":
+        position =  math.floor(cash_per_trade / price)
+        cash -= position * price
+        trade_num += 1
+        buy_num += 1
+        stoploss = round((price - (last_atr * 3)), 2)
+        trade.loc[len(trade)] = {
+            'NUMBER': buy_num,
+            'STOPLOSS': stoploss,
+            'SHARES_BOUGHT': position,
+            'DATE': date,
+            'PRICE_BOUGHT': price,
+            'ACTIVE?': True,
+            'VALUE': int(position * price),
+            'INTIAL_VAL': int(position * price),
+            'EXITDATE': None,
+            'W_TRADE?': None,
+            'LAST_UPDATE': price,
+        }
+     if result == "sell":
+        cash += trade.at[trade.index[l], 'SHARES_BOUGHT'] * price
+
+        trade.at[trade.index[l], 'EXITDATE'] = date
+        trade.at[trade.index[l], 'ACTIVE?'] = False
+
+        if trade.at[trade.index[l], 'VALUE'] > trade.at[trade.index[l], 'INTIAL_VAL']:
+            trade.at[trade.index[l], 'W_TRADE?'] = True
+        else:
+            trade.at[trade.index[l], 'W_TRADE?'] = False
+     return position, stoploss, cash, buy_num, trade_num,
+
+
+
+
+
 #create dataframe for tracking trades 
 trade = pd.DataFrame(
 columns=[
@@ -73,7 +128,7 @@ sp500_table = pd.read_html(url)[0]
 sp500_tickers = sp500_table["Symbol"].tolist()
 
 # Choose a random ticker
-ticker = "HOOD"
+ticker = "PR"
 
 if "." in ticker:
     ticker = ticker.replace(".", "-")
@@ -121,16 +176,17 @@ if not data_check.empty:
 
         #for loop for number of trading days avalible for the ticker
         print("starting loop, please stand by..")
+        time_start = time.time()
         for i in range(200, len(data)):
             last_SMA_50 = data.at[data.index[i],'SMA_50']
             last_SMA_200 = data.at[data.index[i],'SMA_200']
             last_RSI = data.at[data.index[i],'RSI']
             last_atr = data.at[data.index[i],'ATR']
+            cash
 
             price = round(data.at[data.index[i],'Open'], 2)
             if price == 0:
                 continue
-            price = data.at[data.index[i],'Open']
             yesterdays_price = round(data.at[data.index[i - 1],'Close'], 2)
             last_week_price = round(data.at[data.index[i - 5], 'Close'], 2)
             first_price = float(data['Close'].iloc[200])
@@ -142,32 +198,9 @@ if not data_check.empty:
             cash_per_trade = cash * 0.05
             date = data.index[i]
 
-            if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
-                continue
-            #if buy conditions are met, buy and add a row to trade tracking df
-            if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
+            position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss)
 
-                position =  math.floor(cash_per_trade / price)
-                cash -= position * price
-                trade_num += 1
-                buy_num += 1
-                stoploss = round((price - (last_atr * 3)), 2)
-
-                trade.loc[len(trade)] = {
-                    'NUMBER':buy_num,
-                    'STOPLOSS':stoploss,
-                    'SHARES_BOUGHT': position,
-                    'DATE': date,
-                    'PRICE_BOUGHT': price,
-                    'ACTIVE?': True,
-                    'VALUE': int(position * price),
-                    'INTIAL_VAL':int(position * price),
-                    'EXITDATE':None,
-                    'W_TRADE?': None,
-                    'LAST_UPDATE': price,
-                }
-
-
+            
 #check all data rows for still active trades, and then check if stoploss has been met, or needs to be updated
 
             if len(trade) > 0:
@@ -182,18 +215,6 @@ if not data_check.empty:
                             trade.at[trade.index[l], 'LAST_UPDATE'] = price
                             trade.at[trade.index[l], 'STOPLOSS'] = stoploss
 
-                    #conditional for selling
-                        if price < trade.at[trade.index[l],'STOPLOSS']:
-                            cash += trade.at[trade.index[l],'SHARES_BOUGHT'] * price
-
-                            trade.at[trade.index[l], 'EXITDATE'] = date
-                            trade.at[trade.index[l], 'ACTIVE?'] = False
-
-                            if trade.at[trade.index[l], 'VALUE'] > trade.at[trade.index[l], 'INTIAL_VAL']:
-
-                                trade.at[trade.index[l], 'W_TRADE?'] = True
-                            else:
-                                trade.at[trade.index[l], 'W_TRADE?'] = False
 
                         total_position += trade.at[trade.index[l],'SHARES_BOUGHT']
                         trade.at[trade.index[l],'VALUE'] = int(trade.at[trade.index[l],'SHARES_BOUGHT'] * price)
@@ -201,7 +222,7 @@ if not data_check.empty:
             if i % 252 == 0:
                 current_year+= 1
                 #'max_drawdown': f"{round(max_drawdown * 100, 2)}%"
-                print(f"Year {current_year}: done! {round(num_of_years - current_year)} year(s) left.")
+                print(f"Year {current_year}: done! {math.ceil(num_of_years - current_year)} year(s) left.")
 
             #update all the values at end of that day 
             total_value = total_position * price + cash
@@ -302,3 +323,5 @@ if not data_check.empty:
         print(trade.head())
         print(trade.tail())
         print(f"Results saved successfully! Done with {ticker}")
+        end_time = time.time()
+        print(f" program time: {round(end_time - time_start, 2)} secs")
