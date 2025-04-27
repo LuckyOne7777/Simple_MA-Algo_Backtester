@@ -54,20 +54,21 @@ def calculate_atr(data, window):
 def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade):
 
     if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
-                    return "hold"
+                    return "hold", None
             #if buy conditions are met, buy and add a row to trade tracking df
     if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
-        return "buy"
+        return "buy", None
     
     if len(trade) > 0:
         for l in range (len(trade)):
              if trade.at[trade.index[l],'ACTIVE?'] == True:
                         if price < trade.at[trade.index[l],'STOPLOSS']:
-                             return "sell"
-    return "hold"
+                             index = trade.index[l]
+                             return "sell", index
+    return "hold", None
 
-def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss):
-     result = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
+def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss):
+     result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
 
      if result == "buy":
         position =  math.floor(cash_per_trade / price)
@@ -89,16 +90,17 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
             'LAST_UPDATE': price,
         }
      if result == "sell":
-        cash += trade.at[trade.index[l], 'SHARES_BOUGHT'] * price
+        
+        cash += trade.at[index, 'SHARES_BOUGHT'] * price
 
-        trade.at[trade.index[l], 'EXITDATE'] = date
-        trade.at[trade.index[l], 'ACTIVE?'] = False
+        trade.at[index, 'EXITDATE'] = date
+        trade.at[index, 'ACTIVE?'] = False
 
-        if trade.at[trade.index[l], 'VALUE'] > trade.at[trade.index[l], 'INTIAL_VAL']:
-            trade.at[trade.index[l], 'W_TRADE?'] = True
+        if trade.at[index, 'VALUE'] > trade.at[index, 'INTIAL_VAL']:
+            trade.at[index, 'W_TRADE?'] = True
         else:
-            trade.at[trade.index[l], 'W_TRADE?'] = False
-     return position, stoploss, cash, buy_num, trade_num,
+            trade.at[index, 'W_TRADE?'] = False
+     return position, trade_num, cash, buy_num, stoploss,
 
 
 
@@ -128,7 +130,7 @@ sp500_table = pd.read_html(url)[0]
 sp500_tickers = sp500_table["Symbol"].tolist()
 
 # Choose a random ticker
-ticker = "PR"
+ticker = "MRNA"
 
 if "." in ticker:
     ticker = ticker.replace(".", "-")
@@ -182,7 +184,6 @@ if not data_check.empty:
             last_SMA_200 = data.at[data.index[i],'SMA_200']
             last_RSI = data.at[data.index[i],'RSI']
             last_atr = data.at[data.index[i],'ATR']
-            cash
 
             price = round(data.at[data.index[i],'Open'], 2)
             if price == 0:
@@ -199,7 +200,6 @@ if not data_check.empty:
             date = data.index[i]
 
             position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss)
-
             
 #check all data rows for still active trades, and then check if stoploss has been met, or needs to be updated
 
