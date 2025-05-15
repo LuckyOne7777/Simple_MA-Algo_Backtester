@@ -6,7 +6,14 @@ import matplotlib.ticker as mtick
 import math
 import os
 import time
+from alpaca.data.historical import StockHistoricalDataClient
+from alpaca.data.requests import StockBarsRequest
+from alpaca.data.timeframe import TimeFrame
+import datetime
 
+vix = "^VIX"
+
+ENDPOINT = "https://paper-api.alpaca.markets/v2"
 
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
@@ -18,6 +25,7 @@ def calculate_rsi(data, window=14):
     avg_loss = loss_series.rolling(window=window, min_periods=1).mean()
     rs = avg_gain / (avg_loss + 1e-10)
     rsi = 100 - (100 / (1 + rs))
+    rsi = round(rsi, 2)
     return rsi
 
 def calculate_atr(data, window):
@@ -48,15 +56,15 @@ def calculate_atr(data, window):
     true_range = true_range.max(axis=1)
 
     # Calculate the ATR as the rolling mean of true_range
-    atr = true_range.rolling(window=window).mean()
+    atr = round(true_range.rolling(window=window).mean(), 2)
     return atr
 
-def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade):
+def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, vix_price):
 
     if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
                     return "hold", None
             #if buy conditions are met, buy and add a row to trade tracking df
-    if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
+    if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price and vix_price < 30:
         return "buy", None
     
     if len(trade) > 0:
@@ -67,8 +75,8 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
                              return "sell", index
     return "hold", None
 
-def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss):
-     result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
+def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss, vix_price):
+     result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, vix_price)
 
      if result == "buy":
         position =  math.floor(cash_per_trade / price)
@@ -130,29 +138,37 @@ sp500_table = pd.read_html(url)[0]
 sp500_tickers = sp500_table["Symbol"].tolist()
 
 # Choose a random ticker
-ticker = "MRNA"
+ticker = "SPY"
 
 if "." in ticker:
     ticker = ticker.replace(".", "-")
 
-sp500 = "^GSPC"
+sp500 = "SPY"
+vix = "^VIX"
 
 #get the maximium timeframe for the ticker
-data_check = yf.download(ticker, period="max", auto_adjust= False)
+first_date = "2010-01-01"
+last_date = "2020-04-28"
+data_check = yf.download(ticker, start="2010-01-01", end= "2020-04-28", auto_adjust= False)
 
 
 
 if not data_check.empty:
     first_date = data_check.index[0]
     last_date = data_check.index[-1]
+    first_date = "2010-01-01"
+    last_date = "2020-04-28"
     data = yf.download(ticker, start=first_date, end=last_date, auto_adjust=False)
+    market_data = yf.download(vix, start=first_date, end=last_date, auto_adjust=False)
 
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
-    data.columns = data.columns.get_level_values(0)
-    market_data = yf.download(sp500, period="40y")
 
-    if data.empty or len(data) < 200:
+    if isinstance(market_data.columns, pd.MultiIndex):
+        market_data.columns = market_data.columns.get_level_values(0)
+
+
+    if data.empty or market_data.empty or len(data) < 200:
         print(f"No sufficient data for {ticker}")
     else:
         data['SMA_50'] = data['Close'].rolling(window=50).mean()
@@ -175,43 +191,42 @@ if not data_check.empty:
         active_trades = 0
         total_position = 0
         current_year = 0
-
+        first_price = float(data['Close'].iloc[200])
+        control_position = math.floor(starting_cap / first_price)
+        num_of_years = len(data) / 251
         #for loop for number of trading days avalible for the ticker
         print("starting loop, please stand by..")
         time_start = time.time()
+
         for i in range(200, len(data)):
             last_SMA_50 = data.at[data.index[i],'SMA_50']
             last_SMA_200 = data.at[data.index[i],'SMA_200']
             last_RSI = data.at[data.index[i],'RSI']
             last_atr = data.at[data.index[i],'ATR']
+            price = data.at[data.index[i],'Close']
+            vix_price = market_data.at[market_data.index[i], 'Close']
 
-            price = round(data.at[data.index[i],'Open'], 2)
-            if price == 0:
-                continue
             yesterdays_price = round(data.at[data.index[i - 1],'Close'], 2)
             last_week_price = round(data.at[data.index[i - 5], 'Close'], 2)
-            first_price = float(data['Close'].iloc[200])
-
-            num_of_years = len(data) / 251
-            control_position = math.floor(starting_cap / first_price)
 
             #postition sizing of 5% of total value to trade
             cash_per_trade = cash * 0.05
             date = data.index[i]
 
-            position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss)
-            
+            position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss, vix_price)
 #check all data rows for still active trades, and then check if stoploss has been met, or needs to be updated
 
             if len(trade) > 0:
                 for l in range (len(trade)):
-                    if trade.at[trade.index[l],'ACTIVE?'] == True:
+                    if trade.at[trade.index[l],'ACTIVE?'] == False:
+                         continue
+                    else:
                         #conditional for updating stoploss
 
-                        new_stop = price - (2 * last_atr)
+                        new_stop = price - (3 * last_atr)
 
                         if price >=  1.2 * trade.at[trade.index[l],'LAST_UPDATE'] and new_stop > trade.at[trade.index[l], 'STOPLOSS']:
-                            stoploss = price - float((last_atr * 3))
+                            stoploss = new_stop
                             trade.at[trade.index[l], 'LAST_UPDATE'] = price
                             trade.at[trade.index[l], 'STOPLOSS'] = stoploss
 
@@ -223,7 +238,6 @@ if not data_check.empty:
                 current_year+= 1
                 #'max_drawdown': f"{round(max_drawdown * 100, 2)}%"
                 print(f"Year {current_year}: done! {math.ceil(num_of_years - current_year)} year(s) left.")
-
             #update all the values at end of that day 
             total_value = total_position * price + cash
             total_position = 0
@@ -231,6 +245,7 @@ if not data_check.empty:
             portfolio_value.append(total_value)
             control_portfolio_value.append(total_control_value)
 
+        end_time = time.time()
         portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Portfolio_Value': portfolio_value})
         portfolio_df.set_index('Date', inplace=True)
 
@@ -323,5 +338,4 @@ if not data_check.empty:
         print(trade.head())
         print(trade.tail())
         print(f"Results saved successfully! Done with {ticker}")
-        end_time = time.time()
         print(f" program time: {round(end_time - time_start, 2)} secs")
