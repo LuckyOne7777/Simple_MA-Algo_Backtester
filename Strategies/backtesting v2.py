@@ -10,13 +10,31 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 import datetime
+        
+#grab api and secret key from env vars
 
+api_key = os.getenv("API_KEY")
+secret_api_key = os.getenv("SECRET_KEY")
+
+client = StockHistoricalDataClient(api_key, secret_api_key)
+
+request_params = StockBarsRequest(
+    symbol_or_symbols=["AAPL"],  # Can also be a single string
+    timeframe=TimeFrame.Day,     # 1Min, 5Min, 15Min, Hour, Day, etc.
+    start=datetime.datetime(2010, 1, 1),
+    end=datetime.datetime(2021, 3, 1)
+)
+
+bars = client.get_stock_bars(request_params)
+
+new_data = bars.df
+print(new_data)
 vix = "^VIX"
 
 ENDPOINT = "https://paper-api.alpaca.markets/v2"
 
 def calculate_rsi(data, window=14):
-    delta = data['Close'].diff()
+    delta = data['close'].diff()
     gain = np.where(delta > 0, delta, 0)
     loss = np.where(delta < 0, -delta, 0)
     gain_series = pd.Series(gain.flatten(), index=data.index)
@@ -32,12 +50,12 @@ def calculate_atr(data, window):
     if data.empty:
         raise ValueError("Downloaded data is empty. Check the ticker symbol or internet connection.")
 
-    high = data['High']
-    low = data['Low']
-    close = data['Close']
+    high = data['high']
+    low = data['low']
+    close = data['close']
     last_close = close.shift(1)
 
-    required_cols = {'High', 'Low', 'Close'}
+    required_cols = {'high', 'low', 'close'}
     if not required_cols.issubset(data.columns):
         raise ValueError(f"Missing one of the required columns: {required_cols}")
 
@@ -64,7 +82,7 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
     if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
                     return "hold", None
             #if buy conditions are met, buy and add a row to trade tracking df
-    if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price and vix_price < 30:
+    if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
         return "buy", None
     
     if len(trade) > 0:
@@ -149,8 +167,8 @@ vix = "^VIX"
 #get the maximium timeframe for the ticker
 first_date = "2010-01-01"
 last_date = "2020-04-28"
-data_check = yf.download(ticker, start="2010-01-01", end= "2020-04-28", auto_adjust= False)
-
+#data_check = yf.download(ticker, start="2010-01-01", end= "2020-04-28", auto_adjust= False)
+data_check = bars.df
 
 
 if not data_check.empty:
@@ -158,21 +176,22 @@ if not data_check.empty:
     last_date = data_check.index[-1]
     first_date = "2010-01-01"
     last_date = "2020-04-28"
-    data = yf.download(ticker, start=first_date, end=last_date, auto_adjust=False)
-    market_data = yf.download(vix, start=first_date, end=last_date, auto_adjust=False)
-
+    #data = yf.download(ticker, start=first_date, end=last_date, auto_adjust=False)
+    data = bars.df
+    #market_data = yf.download(vix, start=first_date, end=last_date, auto_adjust=False)
+    market_data = bars.df
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
 
     if isinstance(market_data.columns, pd.MultiIndex):
         market_data.columns = market_data.columns.get_level_values(0)
 
-
+    print(len(data))
     if data.empty or market_data.empty or len(data) < 200:
         print(f"No sufficient data for {ticker}")
     else:
-        data['SMA_50'] = data['Close'].rolling(window=50).mean()
-        data['SMA_200'] = data['Close'].rolling(window=200).mean()
+        data['SMA_50'] = data['close'].rolling(window=50).mean()
+        data['SMA_200'] = data['close'].rolling(window=200).mean()
         data['RSI'] = calculate_rsi(data)
         data['ATR'] = calculate_atr(data, 14)
 
@@ -191,7 +210,7 @@ if not data_check.empty:
         active_trades = 0
         total_position = 0
         current_year = 0
-        first_price = float(data['Close'].iloc[200])
+        first_price = float(data['close'].iloc[200])
         control_position = math.floor(starting_cap / first_price)
         num_of_years = len(data) / 251
         #for loop for number of trading days avalible for the ticker
@@ -203,11 +222,11 @@ if not data_check.empty:
             last_SMA_200 = data.at[data.index[i],'SMA_200']
             last_RSI = data.at[data.index[i],'RSI']
             last_atr = data.at[data.index[i],'ATR']
-            price = data.at[data.index[i],'Close']
-            vix_price = market_data.at[market_data.index[i], 'Close']
+            price = data.at[data.index[i],'close']
+            vix_price = market_data.at[market_data.index[i], 'close']
 
-            yesterdays_price = round(data.at[data.index[i - 1],'Close'], 2)
-            last_week_price = round(data.at[data.index[i - 5], 'Close'], 2)
+            yesterdays_price = round(data.at[data.index[i - 1],'close'], 2)
+            last_week_price = round(data.at[data.index[i - 5], 'close'], 2)
 
             #postition sizing of 5% of total value to trade
             cash_per_trade = cash * 0.05
@@ -248,6 +267,8 @@ if not data_check.empty:
         end_time = time.time()
         portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Portfolio_Value': portfolio_value})
         portfolio_df.set_index('Date', inplace=True)
+        print(f"index:{portfolio_df['Date']}") 
+        print(portfolio_df['Portfolio_Value'])
 
         control_portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Control_Portfolio_Value': control_portfolio_value})
         control_portfolio_df.set_index('Date', inplace=True)
@@ -301,8 +322,6 @@ if not data_check.empty:
 
         if os.path.exists(file_path):
             df_existing = pd.read_csv(file_path)
-                # Ensure all rows have the "version" column set to V2
-            df_existing["version"] = "V2"
 
     # Append new summary
             df_updated = pd.concat([df_existing, summary], ignore_index=True)
@@ -324,8 +343,8 @@ if not data_check.empty:
         )
         #create a matplotlib plot
         plt.figure(figsize=(12, 6))
-        plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
-        plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
+        plt.plot(portfolio_df['Date'], portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
+        plt.plot(control_portfolio_df['Date'], control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
         plt.xlabel("Date")
         plt.ylabel("Portfolio Value ($)")
         plt.gca().yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
