@@ -21,7 +21,7 @@ client = StockHistoricalDataClient(api_key, secret_api_key)
 request_params = StockBarsRequest(
     symbol_or_symbols=["AAPL"],  # Can also be a single string
     timeframe=TimeFrame.Day,     # 1Min, 5Min, 15Min, Hour, Day, etc.
-    start=datetime.datetime(2010, 1, 1),
+    start=datetime.datetime(2000, 1, 1),
     end=datetime.datetime(2021, 3, 1)
 )
 
@@ -261,10 +261,10 @@ if not data_check.empty:
             control_portfolio_value.append(total_control_value)
 
         end_time = time.time()
-        portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Portfolio_Value': portfolio_value})
+        portfolio_df = pd.DataFrame({'Date': data.loc[data.index[200:], 'Date'], 'Portfolio_Value': portfolio_value})
         portfolio_df.set_index('Date', inplace=True)
 
-        control_portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Control_Portfolio_Value': control_portfolio_value})
+        control_portfolio_df = pd.DataFrame({'Date': data.loc[data.index[200:], 'Date'], 'Control_Portfolio_Value': control_portfolio_value})
         control_portfolio_df.set_index('Date', inplace=True)
 
         if len(portfolio_value) == 0 or len(control_portfolio_value) == 0:
@@ -338,7 +338,9 @@ if not data_check.empty:
         #create a matplotlib plot
         plt.figure(figsize=(12, 6))
         plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
+        print(portfolio_df.index)
         plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
+        print(control_portfolio_df.index)
         plt.xlabel("Date")
         plt.ylabel("Portfolio Value ($)")
         plt.gca().yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
