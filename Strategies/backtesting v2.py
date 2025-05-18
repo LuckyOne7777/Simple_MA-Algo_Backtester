@@ -28,7 +28,6 @@ request_params = StockBarsRequest(
 bars = client.get_stock_bars(request_params)
 
 new_data = bars.df
-print(new_data)
 vix = "^VIX"
 
 ENDPOINT = "https://paper-api.alpaca.markets/v2"
@@ -128,10 +127,6 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
             trade.at[index, 'W_TRADE?'] = False
      return position, trade_num, cash, buy_num, stoploss,
 
-
-
-
-
 #create dataframe for tracking trades 
 trade = pd.DataFrame(
 columns=[
@@ -156,7 +151,7 @@ sp500_table = pd.read_html(url)[0]
 sp500_tickers = sp500_table["Symbol"].tolist()
 
 # Choose a random ticker
-ticker = "SPY"
+ticker = "NVDA"
 
 if "." in ticker:
     ticker = ticker.replace(".", "-")
@@ -178,6 +173,8 @@ if not data_check.empty:
     last_date = "2020-04-28"
     #data = yf.download(ticker, start=first_date, end=last_date, auto_adjust=False)
     data = bars.df
+    data = data.reset_index()
+    data['Date'] = pd.to_datetime(data['timestamp']).dt.date
     #market_data = yf.download(vix, start=first_date, end=last_date, auto_adjust=False)
     market_data = bars.df
     if isinstance(data.columns, pd.MultiIndex):
@@ -186,7 +183,6 @@ if not data_check.empty:
     if isinstance(market_data.columns, pd.MultiIndex):
         market_data.columns = market_data.columns.get_level_values(0)
 
-    print(len(data))
     if data.empty or market_data.empty or len(data) < 200:
         print(f"No sufficient data for {ticker}")
     else:
@@ -218,6 +214,7 @@ if not data_check.empty:
         time_start = time.time()
 
         for i in range(200, len(data)):
+            date = data.at[data.index[i],'Date']
             last_SMA_50 = data.at[data.index[i],'SMA_50']
             last_SMA_200 = data.at[data.index[i],'SMA_200']
             last_RSI = data.at[data.index[i],'RSI']
@@ -230,7 +227,6 @@ if not data_check.empty:
 
             #postition sizing of 5% of total value to trade
             cash_per_trade = cash * 0.05
-            date = data.index[i]
 
             position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss, vix_price)
 #check all data rows for still active trades, and then check if stoploss has been met, or needs to be updated
@@ -267,8 +263,6 @@ if not data_check.empty:
         end_time = time.time()
         portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Portfolio_Value': portfolio_value})
         portfolio_df.set_index('Date', inplace=True)
-        print(f"index:{portfolio_df['Date']}") 
-        print(portfolio_df['Portfolio_Value'])
 
         control_portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Control_Portfolio_Value': control_portfolio_value})
         control_portfolio_df.set_index('Date', inplace=True)
@@ -288,7 +282,7 @@ if not data_check.empty:
         drawdown = (portfolio_df['Portfolio_Value'] - running_max) / running_max
         max_drawdown = drawdown.min()
 
-        #DF for summary
+        #DF for summary to CSV file
         summary = pd.DataFrame([{
             'symbol': ticker,
             'end_val': f"${end_val:,.0f}",
@@ -343,8 +337,8 @@ if not data_check.empty:
         )
         #create a matplotlib plot
         plt.figure(figsize=(12, 6))
-        plt.plot(portfolio_df['Date'], portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
-        plt.plot(control_portfolio_df['Date'], control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
+        plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
+        plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
         plt.xlabel("Date")
         plt.ylabel("Portfolio Value ($)")
         plt.gca().yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
