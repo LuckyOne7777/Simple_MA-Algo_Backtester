@@ -1,6 +1,6 @@
 # Simple Trading Algo Backtest
 
-Hi there! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is my first attempt at building a somewhat passable algo using a basic moving average crossover strategy.
+Hi there! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is my first attempt at building a somewhat passable algo using a basic moving average crossover strategy. Ignore some of my first commit messages, didn't understand the importance of them lol.
 
 ---
 
@@ -37,7 +37,7 @@ pip install yfinance pandas numpy matplotlib
 ## What's Inside
 
 ### `backtesting.py`
-My first-ever algo! It's a bit messy, but it works.
+My first-ever algo! It's a bit messy, but it works somewhat.
 
 Trades based on:
 - 50/200 Moving Average Crossover

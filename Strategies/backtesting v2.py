@@ -1,4 +1,3 @@
-import yfinance as yf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,27 +9,6 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 import datetime
-        
-#grab api and secret key from env vars
-
-api_key = os.getenv("API_KEY")
-secret_api_key = os.getenv("SECRET_KEY")
-
-client = StockHistoricalDataClient(api_key, secret_api_key)
-
-request_params = StockBarsRequest(
-    symbol_or_symbols=["AAPL"],  # Can also be a single string
-    timeframe=TimeFrame.Day,     # 1Min, 5Min, 15Min, Hour, Day, etc.
-    start=datetime.datetime(2000, 1, 1),
-    end=datetime.datetime(2021, 3, 1)
-)
-
-bars = client.get_stock_bars(request_params)
-
-new_data = bars.df
-vix = "^VIX"
-
-ENDPOINT = "https://paper-api.alpaca.markets/v2"
 
 def calculate_rsi(data, window=14):
     delta = data['close'].diff()
@@ -147,35 +125,35 @@ columns=[
 
 # Get list of S&P 500 tickers
 url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-sp500_table = pd.read_html(url)[0]
-sp500_tickers = sp500_table["Symbol"].tolist()
 
 # Choose a random ticker
-ticker = "NVDA"
+ticker = "AAPL"
 
-if "." in ticker:
-    ticker = ticker.replace(".", "-")
+#grab api and secret key from env vars
 
-sp500 = "SPY"
-vix = "^VIX"
+api_key = os.getenv("API_KEY")
+secret_api_key = os.getenv("SECRET_KEY")
 
-#get the maximium timeframe for the ticker
-first_date = "2010-01-01"
-last_date = "2020-04-28"
-#data_check = yf.download(ticker, start="2010-01-01", end= "2020-04-28", auto_adjust= False)
-data_check = bars.df
+client = StockHistoricalDataClient(api_key, secret_api_key)
 
 
-if not data_check.empty:
-    first_date = data_check.index[0]
-    last_date = data_check.index[-1]
-    first_date = "2010-01-01"
-    last_date = "2020-04-28"
-    #data = yf.download(ticker, start=first_date, end=last_date, auto_adjust=False)
-    data = bars.df
+request_params = StockBarsRequest(
+    symbol_or_symbols=[ticker],  # Can also be a single string
+    timeframe=TimeFrame.Day,     # 1Min, 5Min, 15Min, Hour, Day, etc.
+    start=datetime.datetime(2000, 1, 1),
+    end=datetime.datetime(2021, 3, 1)
+)
+
+bars = client.get_stock_bars(request_params)
+
+ENDPOINT = "https://paper-api.alpaca.markets/v2"
+
+data = bars.df
+if data.empty:
+    raise AttributeError("Could not access data with that timeframe.")
+else:
     data = data.reset_index()
     data['Date'] = pd.to_datetime(data['timestamp']).dt.date
-    #market_data = yf.download(vix, start=first_date, end=last_date, auto_adjust=False)
     market_data = bars.df
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
@@ -229,6 +207,12 @@ if not data_check.empty:
             cash_per_trade = cash * 0.05
 
             position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss, vix_price)
+
+            total_value = total_position * price + cash
+            total_position = 0
+            total_control_value = control_position * price
+            portfolio_value.append(total_value)
+            control_portfolio_value.append(total_control_value)
 #check all data rows for still active trades, and then check if stoploss has been met, or needs to be updated
 
             if len(trade) > 0:
@@ -254,11 +238,8 @@ if not data_check.empty:
                 #'max_drawdown': f"{round(max_drawdown * 100, 2)}%"
                 print(f"Year {current_year}: done! {math.ceil(num_of_years - current_year)} year(s) left.")
             #update all the values at end of that day 
-            total_value = total_position * price + cash
-            total_position = 0
-            total_control_value = control_position * price
-            portfolio_value.append(total_value)
-            control_portfolio_value.append(total_control_value)
+
+    #after loop is over
 
         end_time = time.time()
         portfolio_df = pd.DataFrame({'Date': data.loc[data.index[200:], 'Date'], 'Portfolio_Value': portfolio_value})
