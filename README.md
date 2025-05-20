@@ -1,6 +1,6 @@
 # Simple Trading Algo Backtest
 
-Hi there! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is my first attempt at building a somewhat passable algo using a basic moving average crossover strategy. Ignore some of my first commit messages, was still getting used to GitHub lol.
+Hi! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is my first attempt at building a somewhat passable algo using a basic moving average crossover strategy. Ignore some of my first commit messages, was still getting used to GitHub lol.
 
 ---
 
