@@ -18,46 +18,59 @@ def calculate_rsi(data, window=14):
     rsi = 100 - (100 / (1 + rs))
     return rsi
 
+
 # Select a stock for backtesting
 url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 sp500_table = pd.read_html(url)[0]
 sp500_tickers = sp500_table["Symbol"].tolist()
+
 
 #for comprehesive testing
 main_tickers = tickers = [
 # Broad Market Indexes
 "SPY", "VIX", "QQQ", "DIA", "IWM",
 
+
 # Sector ETFs
 "XLK", "XLF", "XLE", "XLV", "XLI",
 "XLY", "XLP", "XLU", "XLB", "XLRE",
 
+
 # Technology
 "AAPL", "MSFT", "NVDA", "ADBE", "CRM",
+
 
 # Financials
 "JPM", "BAC", "GS", "MS", "SCHW",
 
+
 # Energy
 "XOM", "CVX", "COP", "EOG", "PSX",
+
 
 # Healthcare
 "JNJ", "PFE", "UNH", "LLY", "MRK",
 
+
 # Industrials
 "BA", "CAT", "DE", "LMT", "UNP",
+
 
 # Consumer Discretionary
 "TSLA", "AMZN", "HD", "MCD", "NKE",
 
+
 # Consumer Staples
 "KO", "PEP", "WMT", "PG", "COST",
+
 
 # Utilities
 "NEE", "DUK", "SO", "AEP", "EXC",
 
+
 # Materials
 "LIN", "SHW", "NEM", "APD", "FCX",
+
 
 # Real Estate
 "PLD", "AMT", "CCI", "SPG", "EQIX"
@@ -66,6 +79,7 @@ main_tickers = tickers = [
 ticker = "HOOD"
 sp500 = "^GSPC"
 
+
 try:
     data_check = yf.download(ticker, period="max")
     if not data_check.empty:
@@ -73,6 +87,7 @@ try:
         last_date = data_check.index[-1]
         data = yf.download(ticker, start=first_date, end=last_date)
         market_data = yf.download(sp500, period="40y")
+
 
         if data.empty or len(data) < 200:
             print(f"No sufficient data for {ticker}")
@@ -88,9 +103,10 @@ try:
             portfolio_value = []
             control_portfolio_value = []
 
+
             control_capital = capital
             trade_num = 0
-            #loop for each day 
+            #loop for each day
             for i in range(200, len(data)):
                 #get pricing and SMA data
                 last_SMA_50 = data['SMA_50'].iloc[i]
@@ -102,6 +118,7 @@ try:
                 first_price = float(data['Close'].iloc[200])
                 num_of_years = math.floor(len(data) / 365)
                 control_position = math.floor(starting_cap / first_price)
+
 
                 if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
                     continue
@@ -126,15 +143,18 @@ try:
                 portfolio_value.append(total_value)
                 control_portfolio_value.append(total_control_value)
 
+
             portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Portfolio_Value': portfolio_value})
             portfolio_df.set_index('Date', inplace=True)
+
 
             control_portfolio_df = pd.DataFrame({'Date': data.index[200:], 'Control_Portfolio_Value': control_portfolio_value})
             control_portfolio_df.set_index('Date', inplace=True)
 
+
             if len(portfolio_value) == 0 or len(control_portfolio_value) == 0:
                 raise ValueError("Cannot save: Empty portfolio data!")
-            
+           
             #calculate end values
             end_val = math.floor(portfolio_value[-1])
             trades_per_year = trade_num / num_of_years
@@ -144,7 +164,7 @@ try:
             running_max = portfolio_df['Portfolio_Value'].cummax()
             drawdown = (portfolio_df['Portfolio_Value'] - running_max) / running_max
             max_drawdown = drawdown.min()
-            
+           
             #CSV summary
             summary = pd.DataFrame([{
                 'symbol': ticker,
@@ -158,6 +178,7 @@ try:
                 'running_max': f"${running_max.iloc[-1]:,.0f}",
                 'version' : "V1",
             }])
+
 
             ALL_COLUMNS = [
                 'symbol',
@@ -174,21 +195,30 @@ try:
         output_folder = "CSV files"
         os.makedirs(output_folder, exist_ok=True)  # makes folder if it doesn't exist
 
+
         file_path = os.path.join(output_folder, "MA_backtest.csv")
+
 
         if os.path.exists(file_path):
                 df_existing = pd.read_csv(file_path)
                 # Ensure all rows have the "version" column set to V2
                 df_existing["version"] = "V1"
 
+
     # Append new summary
         df_updated = pd.concat([df_existing, summary], ignore_index=True)
+
 
     # Drop duplicates by 'symbol' and 'version' if needed
         df_updated.drop_duplicates(subset=["symbol", "version"], keep="last", inplace=True)
 
+
     # Save it back
         df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+
+
+
+
 
 
 
@@ -202,6 +232,7 @@ try:
             )
         print("Results saved successfully!")
 
+
             #plot results
         plt.figure(figsize=(12, 6))
         plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
@@ -214,7 +245,11 @@ try:
         plt.grid(True)
         plt.show()
 
+
     else:
         print(f"Could not retrieve data for {ticker}")
 except Exception as e:
     print("Error during backtest:", e)
+
+
+

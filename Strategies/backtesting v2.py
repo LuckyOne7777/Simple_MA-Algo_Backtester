@@ -127,7 +127,7 @@ columns=[
 url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 
 # Choose a random ticker
-ticker = "AAPL"
+ticker = "SPY"
 
 #grab api and secret key from env vars
 
@@ -213,7 +213,9 @@ else:
             total_control_value = control_position * price
             portfolio_value.append(total_value)
             control_portfolio_value.append(total_control_value)
-#check all data rows for still active trades, and then check if stoploss has been met, or needs to be updated
+
+#check all data rows for still active trades, and then check if stoploss has been met,
+# or needs to be updated
 
             if len(trade) > 0:
                 for l in range (len(trade)):
@@ -319,9 +321,7 @@ else:
         #create a matplotlib plot
         plt.figure(figsize=(12, 6))
         plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
-        print(portfolio_df.index)
         plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
-        print(control_portfolio_df.index)
         plt.xlabel("Date")
         plt.ylabel("Portfolio Value ($)")
         plt.gca().yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
