@@ -1,1 +1,4 @@
 symbol,end_val,winner,trades,cagr,median,average,max_drawdown,running_max,version
+SPY,"$12,609",Benchmark,13.5,4.59%,"$11,357","$11,333",-20.79%,"$12,826",V2
+HOOD,"$49,059",Benchmark,141.5,121.49%,"$9,664","$13,912",-48.23%,"$49,059",V1
+HOOD,"$49,059",Benchmark,141.5,121.49%,"$9,664","$13,912",-48.23%,"$49,059",V1

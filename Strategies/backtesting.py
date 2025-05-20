@@ -204,7 +204,7 @@ try:
                 # Ensure all rows have the "version" column set to V2
                 df_existing["version"] = "V1"
 
-
+        df_existing = pd.read_csv(file_path)
     # Append new summary
         df_updated = pd.concat([df_existing, summary], ignore_index=True)
 

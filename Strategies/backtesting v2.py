@@ -54,7 +54,7 @@ def calculate_atr(data, window):
     atr = round(true_range.rolling(window=window).mean(), 2)
     return atr
 
-def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, vix_price):
+def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade):
     #skip NaN rows
     if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
                     return "hold", None
@@ -71,8 +71,8 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
     #return hold otherwise
     return "hold", None
 
-def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss, vix_price):
-     result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, vix_price)
+def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss):
+     result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
     #if signaled buy, execute contitions
      if result == "buy":
         position =  math.floor(cash_per_trade / price)
@@ -214,14 +214,14 @@ else:
             portfolio_value.append(total_value)
             control_portfolio_value.append(total_control_value)
 
-#check all data rows for still active trades, and then check if stoploss has been met,
-# or needs to be updated
+        #check all rows for active trades, and ifstoploss has been met or updated
 
             if len(trade) > 0:
                 for l in range (len(trade)):
                     if trade.at[trade.index[l],'ACTIVE?'] == False:
                          continue
                     else:
+
                         #conditional for updating stoploss
 
                         new_stop = price - (3 * last_atr)
@@ -237,9 +237,7 @@ else:
 
             if i % 252 == 0:
                 current_year+= 1
-                #'max_drawdown': f"{round(max_drawdown * 100, 2)}%"
-                print(f"Year {current_year}: done! {math.ceil(num_of_years - current_year)} year(s) left.")
-            #update all the values at end of that day 
+                print(f"Year {current_year}: done! {math.ceil(num_of_years - current_year)} year(s) left.") 
 
     #after loop is over
 
@@ -291,9 +289,9 @@ else:
             'running_max',
             'version',
         ]
-
+        #make sure folder exists
         output_folder = "CSV files"
-        os.makedirs(output_folder, exist_ok=True)  # makes folder if it doesn't exist
+        os.makedirs(output_folder, exist_ok=True)
 
         file_path = os.path.join(output_folder, "MA_backtest.csv")
 
@@ -329,7 +327,7 @@ else:
         plt.title(f"Backtest Results for {ticker}")
         plt.grid(True)
         plt.show()
-        #print  the head and tail of trade results
+        #print the head and tail of trade DataFrame
 
         print(trade.head())
         print(trade.tail())
