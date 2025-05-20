@@ -55,24 +55,25 @@ def calculate_atr(data, window):
     return atr
 
 def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, vix_price):
-
+    #skip NaN rows
     if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
                     return "hold", None
             #if buy conditions are met, buy and add a row to trade tracking df
     if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
         return "buy", None
-    
+    #check current trades and sell if stoploss has been met
     if len(trade) > 0:
         for l in range (len(trade)):
              if trade.at[trade.index[l],'ACTIVE?'] == True:
                         if price < trade.at[trade.index[l],'STOPLOSS']:
                              index = trade.index[l]
                              return "sell", index
+    #return hold otherwise
     return "hold", None
 
 def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss, vix_price):
      result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, vix_price)
-
+    #if signaled buy, execute contitions
      if result == "buy":
         position =  math.floor(cash_per_trade / price)
         cash -= position * price
@@ -92,6 +93,7 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
             'W_TRADE?': None,
             'LAST_UPDATE': price,
         }
+    # if signaled sell, go to trade's index and update the row
      if result == "sell":
         
         cash += trade.at[index, 'SHARES_BOUGHT'] * price
@@ -123,10 +125,9 @@ columns=[
 )
 
 
-# Get list of S&P 500 tickers
-url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 
-# Choose a random ticker
+
+# Choose a random ticker, such as spy
 ticker = "SPY"
 
 #grab api and secret key from env vars
@@ -136,34 +137,33 @@ secret_api_key = os.getenv("SECRET_KEY")
 
 client = StockHistoricalDataClient(api_key, secret_api_key)
 
-
+#grab data from that ticker
 request_params = StockBarsRequest(
-    symbol_or_symbols=[ticker],  # Can also be a single string
-    timeframe=TimeFrame.Day,     # 1Min, 5Min, 15Min, Hour, Day, etc.
+    symbol_or_symbols=[ticker],
+    timeframe=TimeFrame.Day,     
     start=datetime.datetime(2000, 1, 1),
     end=datetime.datetime(2021, 3, 1)
 )
-
+#get bars for the data
 bars = client.get_stock_bars(request_params)
 
+#not currently using an endpoint but just in case in the future
 ENDPOINT = "https://paper-api.alpaca.markets/v2"
 
 data = bars.df
-if data.empty:
-    raise AttributeError("Could not access data with that timeframe.")
-else:
-    data = data.reset_index()
-    data['Date'] = pd.to_datetime(data['timestamp']).dt.date
-    market_data = bars.df
-    if isinstance(data.columns, pd.MultiIndex):
-        data.columns = data.columns.get_level_values(0)
+    #reset data index back to normal
+data = data.reset_index()
 
-    if isinstance(market_data.columns, pd.MultiIndex):
-        market_data.columns = market_data.columns.get_level_values(0)
+#only get the date from timestamp frame
+data['Date'] = pd.to_datetime(data['timestamp']).dt.date
 
-    if data.empty or market_data.empty or len(data) < 200:
+
+if isinstance(data.columns, pd.MultiIndex):
+    data.columns = data.columns.get_level_values(0)
+
+if data.empty or len(data) < 200:
         print(f"No sufficient data for {ticker}")
-    else:
+else:
         data['SMA_50'] = data['close'].rolling(window=50).mean()
         data['SMA_200'] = data['close'].rolling(window=200).mean()
         data['RSI'] = calculate_rsi(data)
@@ -198,7 +198,7 @@ else:
             last_RSI = data.at[data.index[i],'RSI']
             last_atr = data.at[data.index[i],'ATR']
             price = data.at[data.index[i],'close']
-            vix_price = market_data.at[market_data.index[i], 'close']
+
 
             yesterdays_price = round(data.at[data.index[i - 1],'close'], 2)
             last_week_price = round(data.at[data.index[i - 5], 'close'], 2)
@@ -206,7 +206,7 @@ else:
             #postition sizing of 5% of total value to trade
             cash_per_trade = cash * 0.05
 
-            position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss, vix_price)
+            position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss)
 
             total_value = total_position * price + cash
             total_position = 0
