@@ -1,6 +1,6 @@
 # Simple Trading Algo Backtest
 
-Hi there! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is my first attempt at building a somewhat passable algo using a basic moving average crossover strategy. Ignore some of my first commit messages, didn't understand the importance of them lol.
+Hi! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is my first attempt at building a somewhat passable algo using a basic moving average crossover strategy. Ignore some of my first commit messages, was still getting used to GitHub lol.
 
 ---
 
@@ -26,12 +26,15 @@ To run the files, you'll need the following (very basic) libraries:
 - `pandas`
 - `numpy`
 - `matplotlib`
+- `alpaca-py`
 
 You can install them with:
 ```bash
-pip install yfinance pandas numpy matplotlib
+pip install yfinance pandas numpy matplotlib alpaca-py
 ```
 
+Also, you will need to have an Alpaca API key and secret key in your system's environmental varibles to run V2.
+If this is an issue, please reach out and I can make an alterate program without keys.
 ---
 
 ## What's Inside
@@ -52,7 +55,7 @@ Trades based on:
 ---
 
 ### `backtesting sp500.py`
-Runs the same strategy as above, however runs a loop across all S&P 500 tickers and saves a summary of each backtest.
+Runs the same strategy as above, however runs a loop across all S&P 500 tickers and saves a summary of each backtest to the CSV file.
 
 ---
 
@@ -70,8 +73,7 @@ The second version of my strategy, currently being refined and improved. Major u
 ## Notes
 
 - This is **strictly a learning exercise** — far from a solid trading strategy.
-- I know the algo isn't perfect, but that’s part of the process!
-- 
+- I know it isn't perfect, but it's part of the process!
 
 ---
 
@@ -83,13 +85,14 @@ Here’s what I would like to do next:
 - Improve the structure of CSV outputs
 - Create a modular framework for running and testing strategies
 - Explore more advanced indicators and maybe even ML in the future
+- Create more strategies when I'm finished working on Moving-Averages
 
 ---
 
 ## Why I'm Sharing This
 
 I want to document my progress and maybe help someone else who's just getting started.  
-Eventually, I hope to turn this into something more powerful — and learn a ton along the way.
+Eventually, I hope to turn this into something more powerful — and learn along the way.
 
 If you’re reading this and have feedback, feel free to open an issue or reach out!
 
@@ -97,7 +100,7 @@ If you’re reading this and have feedback, feel free to open an issue or reach 
 
 ## Contact
 
-Feel free to reach out — I'd love to hear your thoughts or maybe even collaborate on this with someone!
+I'd love to hear your thoughts or maybe even collaborate on this with someone!
 
 **Gmail:** nathanbsmith729@gmail.com
 
