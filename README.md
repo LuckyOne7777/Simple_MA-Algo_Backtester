@@ -26,12 +26,15 @@ To run the files, you'll need the following (very basic) libraries:
 - `pandas`
 - `numpy`
 - `matplotlib`
+- `alpaca-py`
 
 You can install them with:
 ```bash
-pip install yfinance pandas numpy matplotlib
+pip install yfinance pandas numpy matplotlib alpaca-py
 ```
 
+Also, you will need to have an Alpaca API key and secret key in your system's environmental varibles to run V2.
+If this is an issue, please reach out and I can make an alterate program without keys.
 ---
 
 ## What's Inside
@@ -52,7 +55,7 @@ Trades based on:
 ---
 
 ### `backtesting sp500.py`
-Runs the same strategy as above, however runs a loop across all S&P 500 tickers and saves a summary of each backtest.
+Runs the same strategy as above, however runs a loop across all S&P 500 tickers and saves a summary of each backtest to the CSV file.
 
 ---
 
@@ -70,7 +73,7 @@ The second version of my strategy, currently being refined and improved. Major u
 ## Notes
 
 - This is **strictly a learning exercise** — far from a solid trading strategy.
-- I know the algo isn't perfect, but it's part of the process!
+- I know it isn't perfect, but it's part of the process!
 
 ---
 
@@ -82,7 +85,7 @@ Here’s what I would like to do next:
 - Improve the structure of CSV outputs
 - Create a modular framework for running and testing strategies
 - Explore more advanced indicators and maybe even ML in the future
-- Create more strategies when I'm finished working on this one
+- Create more strategies when I'm finished working on Moving-Averages
 
 ---
 
