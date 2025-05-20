@@ -1,6 +1,6 @@
 # Simple Trading Algo Backtest
 
-Hi there! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is my first attempt at building a somewhat passable algo using a basic moving average crossover strategy. Ignore some of my first commit messages, didn't understand the importance of them lol.
+Hi there! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is my first attempt at building a somewhat passable algo using a basic moving average crossover strategy. Ignore some of my first commit messages, was still getting used to GitHub lol.
 
 ---
 
@@ -70,8 +70,7 @@ The second version of my strategy, currently being refined and improved. Major u
 ## Notes
 
 - This is **strictly a learning exercise** — far from a solid trading strategy.
-- I know the algo isn't perfect, but that’s part of the process!
-- 
+- I know the algo isn't perfect, but it's part of the process!
 
 ---
 
@@ -83,13 +82,14 @@ Here’s what I would like to do next:
 - Improve the structure of CSV outputs
 - Create a modular framework for running and testing strategies
 - Explore more advanced indicators and maybe even ML in the future
+- Create more strategies when I'm finished working on this one
 
 ---
 
 ## Why I'm Sharing This
 
 I want to document my progress and maybe help someone else who's just getting started.  
-Eventually, I hope to turn this into something more powerful — and learn a ton along the way.
+Eventually, I hope to turn this into something more powerful — and learn along the way.
 
 If you’re reading this and have feedback, feel free to open an issue or reach out!
 
@@ -97,7 +97,7 @@ If you’re reading this and have feedback, feel free to open an issue or reach 
 
 ## Contact
 
-Feel free to reach out — I'd love to hear your thoughts or maybe even collaborate on this with someone!
+I'd love to hear your thoughts or maybe even collaborate on this with someone!
 
 **Gmail:** nathanbsmith729@gmail.com
 
