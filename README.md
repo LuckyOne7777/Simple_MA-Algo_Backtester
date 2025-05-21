@@ -27,11 +27,11 @@ To run the files, you'll need the following (very basic) libraries:
 - `numpy`
 - `matplotlib`
 - `alpaca-py`
-- `lmxl`
+- `lxml`
 
 You can install them with:
 ```bash
-pip install yfinance pandas numpy matplotlib alpaca-py lmxl
+pip install yfinance pandas numpy matplotlib alpaca-py lxml
 ```
 
 Also, you will need to have an Alpaca API key and secret key in your system's environmental varibles to run V2.
