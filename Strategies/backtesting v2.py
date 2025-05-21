@@ -360,12 +360,12 @@ else:
         ax2.set_xlabel('Date')
         ax2.set_title(f'Backtest Results for {ticker}')
         ax2.ticklabel_format(style='plain', axis='y')
-        ax2.ticklabel_format(style='plain', axis='y')
         ax2.grid(True)
 
 
         plt.show()
 
+        #keeping old plot format just in case
         '''#create a matplotlib plot
         plt.figure(figsize=(12, 6))
         plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
