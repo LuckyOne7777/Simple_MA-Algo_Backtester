@@ -35,7 +35,7 @@ pip install yfinance pandas numpy matplotlib alpaca-py lxml
 ```
 
 Also, you will need to have an Alpaca API key and secret key in your system's environmental varibles to run V2.
-If this is an issue, please reach out and I can make an alterate program without keys.
+If this is an issue, you can run `backtestingV2 (no keys).py` for the same result
 ---
 
 ## What's Inside
@@ -70,6 +70,11 @@ The second version of my strategy, currently being refined and improved. Major u
 - Benchmark and portfolio performance over time
 
 ---
+
+### `backtestingV2 (no keys).py`
+
+Exactly how it sounds, same as version 2 but Alpaca keys aren't necessary.
+
 
 ## Notes
 
