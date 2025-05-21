@@ -81,6 +81,8 @@ Exactly how it sounds, same as version 2 but Alpaca keys aren't necessary.
 
 Just an experimental idea I'm trying to store free data from YF so I won't have to download everytime.
 
+---
+
 ## Notes
 
 - This is **strictly a learning exercise** — far from a solid trading strategy.
