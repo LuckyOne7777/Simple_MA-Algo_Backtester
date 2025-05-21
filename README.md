@@ -33,9 +33,6 @@ You can install them with:
 ```bash
 pip install yfinance pandas numpy matplotlib alpaca-py lxml
 ```
-
-Also, you will need to have an Alpaca API key and secret key in your system's environmental varibles to run V2.
-If this is an issue, you can run `backtestingV2 (no keys).py` for the same result
 ---
 
 ## What's Inside
@@ -68,6 +65,9 @@ The second version of my strategy, currently being refined and improved. Major u
 - Position sizing
 - Trade tracking with a dedicated DataFrame
 - Benchmark and portfolio performance over time
+
+Also, you will need to have an Alpaca API key and secret key in your system's environmental varibles to run V2.
+If this is an issue, you can run `backtestingV2 (no keys).py` for the same result.
 
 ---
 
