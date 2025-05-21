@@ -75,6 +75,7 @@ The second version of my strategy, currently being refined and improved. Major u
 
 Exactly how it sounds, same as version 2 but Alpaca keys aren't necessary.
 
+---
 
 ## Notes
 
