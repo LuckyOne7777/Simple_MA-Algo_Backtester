@@ -348,39 +348,29 @@ else:
 
 # Plot on first subplot (ax1)
         ax1.plot(portfolio_df.index, price_df['Price'], color="green")
-        ax1.set_ylabel('Price ($)')
+        ax1.set_ylabel('Price')
         ax1.set_title('Price Chart')
+        ax1.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.2f}'))
         ax1.grid(True)
 
 
     # Plot on second subplot (ax2)
         ax2.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
         ax2.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", color ="orange")
-        ax2.set_ylabel('Portfolio Value ($)')
+        ax2.set_ylabel('Portfolio Value')
         ax2.set_xlabel('Date')
         ax2.set_title(f'Backtest Results for {ticker}')
         ax2.ticklabel_format(style='plain', axis='y')
+        ax2.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
+        ax2.legend()
         ax2.grid(True)
 
-
         plt.show()
 
-        #keeping old plot format just in case
-        '''#create a matplotlib plot
-        plt.figure(figsize=(12, 6))
-        plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
-        plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
-        plt.xlabel("Date")
-        plt.ylabel("Portfolio Value ($)")
-        plt.gca().yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
-        plt.legend()
-        plt.title(f"Backtest Results for {ticker}")
-        plt.grid(True)
-        plt.show()
         #print the head and tail of trade DataFrame
 
         print(trade.head())
         print(trade.tail())
         print(f"Results saved successfully! Done with {ticker}")
         print(f" program time: {round(end_time - time_start, 2)} secs")
-        '''
+        
