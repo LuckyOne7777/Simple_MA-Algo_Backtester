@@ -136,8 +136,8 @@ ticker = "MAR"
 
 #grab api and secret key from env vars
 
-api_key = os.getenv("API_KEY")
-secret_api_key = os.getenv("SECRET_KEY")
+api_key = os.getenv("ALPACA_API_KEY")
+secret_api_key = os.getenv("ALPACA_SECRET_KEY")
 
 client = StockHistoricalDataClient(api_key, secret_api_key)
 
