@@ -71,7 +71,7 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
     #return hold otherwise
     return "hold", None
 
-def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss):
+def SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss):
     result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
     #if signaled buy, execute contitions
     if result == "buy":
@@ -219,7 +219,7 @@ else:
             #postition sizing of 5% of total value to trade
             cash_per_trade = cash * 0.05
 
-            position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss)
+            position, trade_num, cash, buy_num, stoploss = SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss)
 
             total_value = total_position * price + cash
             total_position = 0
@@ -255,19 +255,10 @@ else:
     #after loop is over
 
         end_time = time.time()
-        
-        buy_points = []
-        sell_points = []
-        for i in range(len(trade)):
-            buy_points.append({
-            'X': trade.loc[trade.index[i], 'BUY_DATE'], 
-            'Y': trade.loc[trade.index[i], 'PRICE_BOUGHT']
-            })
-            if not trade.loc[trade.index[i], 'ACTIVE?']:
-                sell_points.append({
-                'X': trade.loc[trade.index[i], 'EXITDATE'],
-                'Y': trade.loc[trade.index[i], 'EXIT_PRICE']
-                })
+
+        sell_points = trade[trade['ACTIVE?'] == False]
+
+        buy_points = pd.DataFrame({'X': trade['BUY_DATE'], 'Y': trade['PRICE_BOUGHT']})
 
         portfolio_df = pd.DataFrame({'Date': data.loc[data.index[200:], 'Date'], 'Portfolio_Value': portfolio_value})
         portfolio_df.set_index('Date', inplace=True)
@@ -347,6 +338,9 @@ else:
         fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
 
 # Plot on first subplot (ax1)
+        ax1.scatter(buy_points['X'], buy_points['Y'], color = 'blue')
+        ax1.scatter(sell_points['EXITDATE'], sell_points['EXIT_PRICE'], color='red')
+        print(sell_points)
         ax1.plot(portfolio_df.index, price_df['Price'], color="green")
         ax1.set_ylabel('Price')
         ax1.set_title('Price Chart')
