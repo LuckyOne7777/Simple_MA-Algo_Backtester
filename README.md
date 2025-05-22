@@ -29,11 +29,13 @@ To run the files, you'll need the following (very basic) libraries:
 - `alpaca-py`
 - `lxml`
 
-You can set up the project with:
+You can set up and run the project from source with:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+cd Strategies
+python <file>
 ```
 
 Also, you will need to have an Alpaca API key and secret key in your system's environmental varibles to run V2.
