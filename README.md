@@ -29,9 +29,11 @@ To run the files, you'll need the following (very basic) libraries:
 - `alpaca-py`
 - `lxml`
 
-You can install them with:
+You can set up the project with:
 ```bash
-pip install yfinance pandas numpy matplotlib alpaca-py lxml
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 Also, you will need to have an Alpaca API key and secret key in your system's environmental varibles to run V2.
@@ -98,7 +100,7 @@ Here’s what I would like to do next:
 
 ## Why I'm Sharing This
 
-I want to document my progress and maybe help someone else who's just getting started.  
+I want to document my progress and maybe help someone else who's just getting started.
 Eventually, I hope to turn this into something more powerful — and learn along the way.
 
 If you’re reading this and have feedback, feel free to open an issue or reach out!
@@ -110,4 +112,3 @@ If you’re reading this and have feedback, feel free to open an issue or reach 
 I'd love to hear your thoughts or maybe even collaborate on this with someone!
 
 **Gmail:** nathanbsmith729@gmail.com
-
