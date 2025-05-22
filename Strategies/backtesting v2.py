@@ -132,7 +132,7 @@ columns=[
 
 
 # Choose a random ticker, such as spy
-ticker = "SPY"
+ticker = "MAR"
 
 #grab api and secret key from env vars
 
@@ -338,9 +338,9 @@ else:
         fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
 
 # Plot on first subplot (ax1)
-        ax1.scatter(buy_points['X'], buy_points['Y'], color = 'blue', marker = '^', s = 20, label = "Buy Signal")
-        ax1.scatter(sell_points['EXITDATE'], sell_points['EXIT_PRICE'], color='red', marker = 'v', s=20, label = "Sell Signal")
-        ax1.plot(portfolio_df.index, price_df['Price'], color="green")
+        ax1.scatter(buy_points['X'], buy_points['Y'] - 0.5, color = 'blue', marker = '^', s =10, label = "Buy Signal")
+        ax1.scatter(sell_points['EXITDATE'], sell_points['EXIT_PRICE'] + 0.5, color='red', marker = 'v', s=10, label = "Sell Signal")
+        ax1.plot(portfolio_df.index, price_df['Price'], color="green", alpha = 0.7)
         ax1.set_ylabel('Price')
         ax1.set_title('Price Chart')
         ax1.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.2f}'))
