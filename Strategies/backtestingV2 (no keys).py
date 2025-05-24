@@ -82,7 +82,7 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
         trade.loc[len(trade)] = {
             'NUMBER': buy_num,
             'STOPLOSS': stoploss,
-            'SHARES_BOUGHT': position,
+            'SHARE_#': position,
             'BUY_DATE': date,
             'PRICE_BOUGHT': adjusted_price,
             'ACTIVE?': True,
@@ -98,7 +98,7 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
         #assume slippage was 1% less for selling
         adjusted_price = price * 0.99
         
-        cash += trade.at[index, 'SHARES_BOUGHT'] * adjusted_price
+        cash += trade.at[index, 'SHARE_#'] * adjusted_price
 
         trade.at[index, 'EXITDATE'] = date
         trade.at[index, 'EXIT_PRICE'] = adjusted_price
@@ -115,7 +115,7 @@ trade = pd.DataFrame(
 columns=[
 'NUMBER',
 'STOPLOSS',
-'SHARES_BOUGHT',
+'SHARE_#',
 'BUY_DATE',
 'PRICE_BOUGHT',
 'EXITDATE',
@@ -221,8 +221,8 @@ else:
                             trade.at[trade.index[l], 'STOPLOSS'] = stoploss
 
 
-                        total_position += trade.at[trade.index[l],'SHARES_BOUGHT']
-                        trade.at[trade.index[l],'VALUE'] = int(trade.at[trade.index[l],'SHARES_BOUGHT'] * price)
+                        total_position += trade.at[trade.index[l],'SHARE_#']
+                        trade.at[trade.index[l],'VALUE'] = int(trade.at[trade.index[l],'SHARE_#'] * price)
 
             if i % 252 == 0:
                 current_year+= 1
