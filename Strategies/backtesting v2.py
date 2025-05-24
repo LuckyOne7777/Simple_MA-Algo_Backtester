@@ -73,35 +73,38 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
 
 def SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss):
     result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
-    #if signaled buy, execute contitions
+    #if signaled buy, execute conditions
     if result == "buy":
-        position =  math.floor(cash_per_trade / price)
-        cash -= position * price
+        #assume slippage was 1% more for buying
+        adjusted_price = price * 1.01
+        position =  math.floor(cash_per_trade / adjusted_price)
+        cash -= position * adjusted_price
         trade_num += 1
         buy_num += 1
-        stoploss = round((price - (last_atr * 3)), 2)
+        stoploss = round((adjusted_price - (last_atr * 3)), 2)
         trade.loc[len(trade)] = {
             'NUMBER': buy_num,
             'STOPLOSS': stoploss,
             'SHARES_BOUGHT': position,
             'BUY_DATE': date,
-            'PRICE_BOUGHT': price,
+            'PRICE_BOUGHT': adjusted_price,
             'ACTIVE?': True,
-            'VALUE': int(position * price),
-            'INTIAL_VAL': int(position * price),
+            'VALUE': int(position * adjusted_price),
+            'INTIAL_VAL': int(position * adjusted_price),
             'EXITDATE': None,
             'W_TRADE?': None,
-            'LAST_UPDATE': price,
+            'LAST_UPDATE': adjusted_price,
             'EXIT_PRICE': None,
         }
     # if signaled sell, go to trade's index and update the row
     if result == "sell":
-        
-        cash += trade.at[index, 'SHARES_BOUGHT'] * price
+        #assume slippage was 1% less for selling
+        adjusted_price = price * 0.99
+        cash += trade.at[index, 'SHARES_BOUGHT'] * adjusted_price
 
         trade.at[index, 'EXITDATE'] = date
         trade.at[index, 'ACTIVE?'] = False
-        trade.at[index, 'EXIT_PRICE'] = price
+        trade.at[index, 'EXIT_PRICE'] = adjusted_price
 
 
         if trade.at[index, 'VALUE'] > trade.at[index, 'INTIAL_VAL']:
@@ -194,7 +197,6 @@ else:
         print("starting loop, please stand by..")
         time_start = time.time()
 
-
         price_data = []
 
         for i in range(200, len(data)):
@@ -204,6 +206,8 @@ else:
             last_RSI = data.at[data.index[i],'RSI']
             last_atr = data.at[data.index[i],'ATR']
             price = data.at[data.index[i],'close']
+            #postition sizing of 5% of total value to trade
+            cash_per_trade = cash * 0.05
 
             price_data.append({
                 'Date': data.at[data.index[i], 'Date'],
@@ -215,9 +219,6 @@ else:
 
             yesterdays_price = round(data.at[data.index[i - 1],'close'], 2)
             last_week_price = round(data.at[data.index[i - 5], 'close'], 2)
-
-            #postition sizing of 5% of total value to trade
-            cash_per_trade = cash * 0.05
 
             position, trade_num, cash, buy_num, stoploss = SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss)
 
@@ -243,7 +244,6 @@ else:
                             stoploss = new_stop
                             trade.at[trade.index[l], 'LAST_UPDATE'] = price
                             trade.at[trade.index[l], 'STOPLOSS'] = stoploss
-
 
                         total_position += trade.at[trade.index[l],'SHARES_BOUGHT']
                         trade.at[trade.index[l],'VALUE'] = int(trade.at[trade.index[l],'SHARES_BOUGHT'] * price)
@@ -338,8 +338,8 @@ else:
         fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
 
 # Plot on first subplot (ax1)
-        ax1.scatter(buy_points['X'], buy_points['Y'] - 0.5, color = 'blue', marker = '^', s =10, label = "Buy Signal")
-        ax1.scatter(sell_points['EXITDATE'], sell_points['EXIT_PRICE'] + 0.5, color='red', marker = 'v', s=10, label = "Sell Signal")
+        ax1.scatter(buy_points['X'], buy_points['Y'] - 1, color = 'blue', marker = '^', s =10, label = "Buy Signal")
+        ax1.scatter(sell_points['EXITDATE'], sell_points['EXIT_PRICE'] + 1, color='red', marker = 'v', s=10, label = "Sell Signal")
         ax1.plot(portfolio_df.index, price_df['Price'], color="green", alpha = 0.7)
         ax1.set_ylabel('Price')
         ax1.set_title('Price Chart')
