@@ -72,20 +72,22 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
      result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
     #if signaled buy, execute contitions
      if result == "buy":
-        position =  math.floor(cash_per_trade / price)
-        cash -= position * price
+        #assume slippage was 1% less for selling
+        adjusted_price = price * 1.01
+        position =  math.floor(cash_per_trade / adjusted_price)
+        cash -= position * adjusted_price
         trade_num += 1
         buy_num += 1
-        stoploss = round((price - (last_atr * 3)), 2)
+        stoploss = round((adjusted_price - (last_atr * 3)), 2)
         trade.loc[len(trade)] = {
             'NUMBER': buy_num,
             'STOPLOSS': stoploss,
             'SHARES_BOUGHT': position,
             'BUY_DATE': date,
-            'PRICE_BOUGHT': price,
+            'PRICE_BOUGHT': adjusted_price,
             'ACTIVE?': True,
-            'VALUE': int(position * price),
-            'INTIAL_VAL': int(position * price),
+            'VALUE': int(position * adjusted_price),
+            'INTIAL_VAL': int(position * adjusted_price),
             'EXITDATE': None,
             'EXIT_PRICE': None,
             'W_TRADE?': None,
@@ -93,11 +95,13 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
         }
     # if signaled sell, go to trade's index and update the row
      if result == "sell":
+        #assume slippage was 1% less for selling
+        adjusted_price = price * 0.99
         
-        cash += trade.at[index, 'SHARES_BOUGHT'] * price
+        cash += trade.at[index, 'SHARES_BOUGHT'] * adjusted_price
 
         trade.at[index, 'EXITDATE'] = date
-        trade.at[index, 'EXIT_PRICE'] = price
+        trade.at[index, 'EXIT_PRICE'] = adjusted_price
         trade.at[index, 'ACTIVE?'] = False
 
         if trade.at[index, 'VALUE'] > trade.at[index, 'INTIAL_VAL']:
