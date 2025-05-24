@@ -72,7 +72,7 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
      result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
     #if signaled buy, execute contitions
      if result == "buy":
-        #assume slippage was 1% less for selling
+        #assume slippage was 1% more for buying
         adjusted_price = price * 1.01
         position =  math.floor(cash_per_trade / adjusted_price)
         cash -= position * adjusted_price
