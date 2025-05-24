@@ -7,6 +7,30 @@ import os
 import time
 import yfinance as yf
 
+def update_stoploss(trade, price, last_atr, total_position, portfolio_value, control_portfolio_value, cash, control_position):
+            if len(trade) > 0:
+                for l in range (len(trade)):
+                    if trade.at[trade.index[l],'ACTIVE?'] == False:
+                         continue
+                    else:
+
+                        #conditional for updating stoploss
+
+                        new_stop = price - (3 * last_atr)
+
+                        if price >=  1.2 * trade.at[trade.index[l],'LAST_UPDATE'] and new_stop > trade.at[trade.index[l], 'STOPLOSS']:
+                            stoploss = new_stop
+                            trade.at[trade.index[l], 'LAST_UPDATE'] = price
+                            trade.at[trade.index[l], 'STOPLOSS'] = stoploss
+                            
+                    total_position += trade.at[trade.index[l],'SHARE_#']
+                    trade.at[trade.index[l],'VALUE'] = int(trade.at[trade.index[l],'SHARE_#'] * price)
+            total_value = total_position * price + cash
+            total_position = 0
+            total_control_value = control_position * price
+            portfolio_value.append(total_value)
+            control_portfolio_value.append(total_control_value)
+
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
     gain = np.where(delta > 0, delta, 0)
@@ -197,32 +221,10 @@ else:
 
             position, trade_num, cash, buy_num, stoploss = SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss)
 
-            total_value = total_position * price + cash
-            total_position = 0
-            total_control_value = control_position * price
-            portfolio_value.append(total_value)
-            control_portfolio_value.append(total_control_value)
-
         #check all rows for active trades, and ifstoploss has been met or updated
 
-            if len(trade) > 0:
-                for l in range (len(trade)):
-                    if trade.at[trade.index[l],'ACTIVE?'] == False:
-                         continue
-                    else:
-
-                        #conditional for updating stoploss
-
-                        new_stop = price - (3 * last_atr)
-
-                        if price >=  1.2 * trade.at[trade.index[l],'LAST_UPDATE'] and new_stop > trade.at[trade.index[l], 'STOPLOSS']:
-                            stoploss = new_stop
-                            trade.at[trade.index[l], 'LAST_UPDATE'] = price
-                            trade.at[trade.index[l], 'STOPLOSS'] = stoploss
-
-
-                        total_position += trade.at[trade.index[l],'SHARE_#']
-                        trade.at[trade.index[l],'VALUE'] = int(trade.at[trade.index[l],'SHARE_#'] * price)
+            update_stoploss(trade, price, last_atr, total_position, portfolio_value, control_portfolio_value, cash, control_position)
+            
 
             if i % 252 == 0:
                 current_year+= 1
