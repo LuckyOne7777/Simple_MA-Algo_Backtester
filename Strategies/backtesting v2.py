@@ -59,7 +59,7 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
     if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
                     return "hold", None
             #if buy conditions are met, buy and add a row to trade tracking df
-    if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
+    if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price * 1.01:
         return "buy", None
     #check current trades and sell if stoploss has been met
     if len(trade) > 0:
@@ -135,8 +135,7 @@ columns=[
 
 
 # Choose a random ticker, such as spy
-ticker = "MAR"
-
+ticker = input("What is the ticker? ")
 #grab api and secret key from env vars
 
 api_key = os.getenv("ALPACA_API_KEY")

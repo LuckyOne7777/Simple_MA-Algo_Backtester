@@ -56,7 +56,7 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
     if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
                     return "hold", None
             #if buy conditions are met, buy and add a row to trade tracking df
-    if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price:
+    if last_SMA_50 > last_SMA_200 and last_RSI < 70 and cash_per_trade >= price * 1.01:
         return "buy", None
     #check current trades and sell if stoploss has been met
     if len(trade) > 0:
@@ -130,11 +130,11 @@ columns=[
 
 
 # Choose a random ticker, such as spy
-ticker = "NKLAQ"
+ticker = "JNJ"
 
 #using period max usually takes a while, to control the time frame use:
 # data = yf.download(ticker, start="YYYY-MM-DD", end="YYYY-MM-DD")
-data = yf.download(ticker, period="max")
+data = yf.download(ticker, start="2015-01-01", end="2021-01-01")
 
 #reset data index back to default
 data = data.reset_index()
