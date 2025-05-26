@@ -123,7 +123,7 @@ columns=[
 
 
 # Choose a random ticker, such as spy
-ticker = "SPY"
+ticker = "IONQ"
 
 #using period max usually takes a while, to control the time frame use:
 # data = yf.download(ticker, start="YYYY-MM-DD", end="YYYY-MM-DD")
@@ -154,7 +154,6 @@ else:
         control_capital = capital
         trade_num = 0
         buy_num = 0
-        buy_num = 0
         stoploss = 0
         active_trades = 0
         total_position = 0
@@ -166,6 +165,8 @@ else:
         print("starting loop, please stand by..")
         time_start = time.time()
 
+        price_data = []
+        
         for i in range(200, len(data)):
             date = data.at[data.index[i],'Date']
             last_SMA_50 = data.at[data.index[i],'SMA_50']
@@ -173,6 +174,11 @@ else:
             last_RSI = data.at[data.index[i],'RSI']
             last_atr = data.at[data.index[i],'ATR']
             price = data.at[data.index[i],'Close']
+
+            price_data.append({'Date': date, 'Price': price})
+
+            price_df = pd.DataFrame(price_data)
+            price_df.set_index('Date', inplace=True)
 
 
             yesterdays_price = round(data.at[data.index[i - 1], 'Close'], 2)
@@ -291,6 +297,29 @@ else:
             index=False,
             columns=ALL_COLUMNS,
         )
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
+
+# Plot on first subplot (ax1)
+        ax1.plot(portfolio_df.index, price_df['Price'], color="green")
+        ax1.set_ylabel('Price')
+        ax1.set_title('Price Chart')
+        ax1.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.2f}'))
+        ax1.grid(True)
+
+
+    # Plot on second subplot (ax2)
+        ax2.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
+        ax2.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", color ="orange")
+        ax2.set_ylabel('Portfolio Value')
+        ax2.set_xlabel('Date')
+        ax2.set_title(f'Backtest Results for {ticker}')
+        ax2.ticklabel_format(style='plain', axis='y')
+        ax2.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
+        ax2.grid(True)
+        ax2.legend()
+
+        plt.show()
+        '''
         #create a matplotlib plot
         plt.figure(figsize=(12, 6))
         plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
@@ -302,6 +331,7 @@ else:
         plt.title(f"Backtest Results for {ticker}")
         plt.grid(True)
         plt.show()
+        '''
         #print the head and tail of trade DataFrame
 
         print(trade.head())

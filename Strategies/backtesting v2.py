@@ -72,9 +72,9 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
     return "hold", None
 
 def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss):
-     result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
+    result, index = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
     #if signaled buy, execute contitions
-     if result == "buy":
+    if result == "buy":
         position =  math.floor(cash_per_trade / price)
         cash -= position * price
         trade_num += 1
@@ -84,7 +84,7 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
             'NUMBER': buy_num,
             'STOPLOSS': stoploss,
             'SHARES_BOUGHT': position,
-            'DATE': date,
+            'BUY_DATE': date,
             'PRICE_BOUGHT': price,
             'ACTIVE?': True,
             'VALUE': int(position * price),
@@ -92,20 +92,23 @@ def SMAtrade_excution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price
             'EXITDATE': None,
             'W_TRADE?': None,
             'LAST_UPDATE': price,
+            'EXIT_PRICE': None,
         }
     # if signaled sell, go to trade's index and update the row
-     if result == "sell":
+    if result == "sell":
         
         cash += trade.at[index, 'SHARES_BOUGHT'] * price
 
         trade.at[index, 'EXITDATE'] = date
         trade.at[index, 'ACTIVE?'] = False
+        trade.at[index, 'EXIT_PRICE'] = price
+
 
         if trade.at[index, 'VALUE'] > trade.at[index, 'INTIAL_VAL']:
             trade.at[index, 'W_TRADE?'] = True
         else:
             trade.at[index, 'W_TRADE?'] = False
-     return position, trade_num, cash, buy_num, stoploss,
+    return position, trade_num, cash, buy_num, stoploss,
 
 #create dataframe for tracking trades 
 trade = pd.DataFrame(
@@ -113,7 +116,7 @@ columns=[
 'NUMBER',
 'STOPLOSS',
 'SHARES_BOUGHT',
-'DATE',
+'BUY_DATE',
 'PRICE_BOUGHT',
 'EXITDATE',
 'ACTIVE?',
@@ -121,6 +124,7 @@ columns=[
 'INTIAL_VAL',
 'VALUE',
 'LAST_UPDATE',
+'EXIT_PRICE',
 ]
 )
 
@@ -179,7 +183,6 @@ else:
         control_capital = capital
         trade_num = 0
         buy_num = 0
-        buy_num = 0
         stoploss = 0
         active_trades = 0
         total_position = 0
@@ -191,6 +194,9 @@ else:
         print("starting loop, please stand by..")
         time_start = time.time()
 
+
+        price_data = []
+
         for i in range(200, len(data)):
             date = data.at[data.index[i],'Date']
             last_SMA_50 = data.at[data.index[i],'SMA_50']
@@ -199,6 +205,13 @@ else:
             last_atr = data.at[data.index[i],'ATR']
             price = data.at[data.index[i],'close']
 
+            price_data.append({
+                'Date': data.at[data.index[i], 'Date'],
+                'Price': int(data.at[data.index[i], 'close'])
+            })
+
+            price_df = pd.DataFrame(price_data)
+            price_df.set_index('Date', inplace=True)
 
             yesterdays_price = round(data.at[data.index[i - 1],'close'], 2)
             last_week_price = round(data.at[data.index[i - 5], 'close'], 2)
@@ -242,6 +255,20 @@ else:
     #after loop is over
 
         end_time = time.time()
+        
+        buy_points = []
+        sell_points = []
+        for i in range(len(trade)):
+            buy_points.append({
+            'X': trade.loc[trade.index[i], 'BUY_DATE'], 
+            'Y': trade.loc[trade.index[i], 'PRICE_BOUGHT']
+            })
+            if not trade.loc[trade.index[i], 'ACTIVE?']:
+                sell_points.append({
+                'X': trade.loc[trade.index[i], 'EXITDATE'],
+                'Y': trade.loc[trade.index[i], 'EXIT_PRICE']
+                })
+
         portfolio_df = pd.DataFrame({'Date': data.loc[data.index[200:], 'Date'], 'Portfolio_Value': portfolio_value})
         portfolio_df.set_index('Date', inplace=True)
 
@@ -316,20 +343,34 @@ else:
             index=False,
             columns=ALL_COLUMNS,
         )
-        #create a matplotlib plot
-        plt.figure(figsize=(12, 6))
-        plt.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
-        plt.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", linestyle="dashed")
-        plt.xlabel("Date")
-        plt.ylabel("Portfolio Value ($)")
-        plt.gca().yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
-        plt.legend()
-        plt.title(f"Backtest Results for {ticker}")
-        plt.grid(True)
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
+
+# Plot on first subplot (ax1)
+        ax1.plot(portfolio_df.index, price_df['Price'], color="green")
+        ax1.set_ylabel('Price')
+        ax1.set_title('Price Chart')
+        ax1.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.2f}'))
+        ax1.grid(True)
+
+
+    # Plot on second subplot (ax2)
+        ax2.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
+        ax2.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", color ="orange")
+        ax2.set_ylabel('Portfolio Value')
+        ax2.set_xlabel('Date')
+        ax2.set_title(f'Backtest Results for {ticker}')
+        ax2.ticklabel_format(style='plain', axis='y')
+        ax2.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
+        ax2.legend()
+        ax2.grid(True)
+
         plt.show()
+
         #print the head and tail of trade DataFrame
 
         print(trade.head())
         print(trade.tail())
         print(f"Results saved successfully! Done with {ticker}")
         print(f" program time: {round(end_time - time_start, 2)} secs")
+        
