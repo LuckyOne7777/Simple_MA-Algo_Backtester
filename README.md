@@ -66,7 +66,7 @@ The second version of my strategy, currently being refined and improved. Major u
 - Trade tracking with a dedicated DataFrame
 - Benchmark and portfolio performance over time
 
-Also, you will need to have an Alpaca API key and secret key in your system's environmental varibles to run V2.
+Also, you will need to have an Alpaca API key: `ALPACA_SECRET_KEY` and Alpaca secret key: `ALPACA_SECRET_KEY` in your system's environmental varibles to run V2.
 If this is an issue, you can run `backtestingV2 (no keys).py` for the same result.
 
 ---
@@ -85,7 +85,7 @@ Just an experimental idea I'm trying to store free data from YF so I won't have 
 
 ## Notes
 
-- This is **strictly a learning exercise** — far from a solid trading strategy.
+- This is **strictly a learning exercise** — far from a solid trading strategy (it kinda sucks). 
 - I know it isn't perfect, but it's part of the process!
 
 ---
