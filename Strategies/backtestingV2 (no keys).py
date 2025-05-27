@@ -315,8 +315,8 @@ else:
             'running_max',
             'version',
         ]
-        user_result = input("Would you like to save results to CSV? (y/n) ")
-        if user_result == "y":
+        user_CSV_preference = input("Would you like to save results to CSV? (y/n) ")
+        if user_CSV_preference == "y":
             print("Saving results...")
         #make sure folder exists
             output_folder = "CSV files"

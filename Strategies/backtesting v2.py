@@ -332,33 +332,37 @@ else:
             'running_max',
             'version',
         ]
+        
+        user_CSV_preference = input("Would you like to save results to CSV? (y/n) ")
+        if user_CSV_preference == "y":
+            print("Saving results...")
         #make sure folder exists
-        output_folder = "CSV files"
-        os.makedirs(output_folder, exist_ok=True)
+            output_folder = "CSV files"
+            os.makedirs(output_folder, exist_ok=True)
 
-        file_path = os.path.join(output_folder, "MA_backtest.csv")
+            file_path = os.path.join(output_folder, "MA_backtest.csv")
 
-        if os.path.exists(file_path):
-            df_existing = pd.read_csv(file_path)
+            if os.path.exists(file_path):
+                df_existing = pd.read_csv(file_path)
 
     # Append new summary
-            df_updated = pd.concat([df_existing, summary], ignore_index=True)
+                df_updated = pd.concat([df_existing, summary], ignore_index=True)
 
     # Drop duplicates by 'symbol' and 'version' if needed
-            df_updated.drop_duplicates(subset=["symbol", "version"], keep="last", inplace=True)
+                df_updated.drop_duplicates(subset=["symbol", "version"], keep="last", inplace=True)
 
     # Save it back
-            df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
-        else:
-            summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+                df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+            else:
+                summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
       
-        summary.to_csv(
-            file_path,
-            mode='a' if os.path.exists(file_path) else 'w',
-            header=not os.path.exists(file_path),
-            index=False,
-            columns=ALL_COLUMNS,
-        )
+            summary.to_csv(
+                file_path,
+                mode='a' if os.path.exists(file_path) else 'w',
+                header=not os.path.exists(file_path),
+                index=False,
+                columns=ALL_COLUMNS,
+                        )
 
         fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
 
