@@ -156,27 +156,36 @@ columns=[
 # Choose a random ticker, such as spy
 ticker = input("What is the ticker symbol? ")
 
-start_year = input("What start year should it test on? (YYYY form) ")
-start_year = start_year + "-"
+user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
+print(user_time_preference)
+if user_time_preference == "1":
+    data = yf.download(ticker, period="max")
 
-start_month = input("What start month should it test on? (MM form) ")
-start_month = start_month + "-"
+elif user_time_preference == "2":
+     
+    start_year = input("What start year should it test on? (YYYY form) ")
+    start_year = start_year + "-"
 
-start_day = input("What start day should it test on? (DD form) ")
-start_date = start_year + start_month + start_day
+    start_month = input("What start month should it test on? (MM form) ")
+    start_month = start_month + "-"
 
-end_year = input("What end year should it stop? (YYYY form) ")
-end_year = end_year + "-"
+    start_day = input("What start day should it test on? (DD form) ")
+    start_date = start_year + start_month + start_day
 
-end_month = input("What end month should it stop? (MM form) ")
-end_month = end_month + "-"
+    end_year = input("What end year should it stop? (YYYY form) ")
+    end_year = end_year + "-"
 
-end_day = input("What end day should it stop? (DD form) ")
-end_date = end_year + end_month + end_day
+    end_month = input("What end month should it stop? (MM form) ")
+    end_month = end_month + "-"
+
+    end_day = input("What end day should it stop? (DD form) ")
+    end_date = end_year + end_month + end_day
 
 
-data = yf.download(ticker, start=start_date, end=end_date)
+    data = yf.download(ticker, start=start_date, end=end_date)
 
+else:
+    raise ValueError("Did not choose valid option. (1 or 2)")
 
 #using period max usually takes a while, to control the time frame use:
 # data = yf.download(ticker, start="2015-01-01", end="2021-01-01")

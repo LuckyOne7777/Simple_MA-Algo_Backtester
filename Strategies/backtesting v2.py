@@ -8,7 +8,7 @@ import time
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
-import datetime
+from datetime import datetime
 
 def update_stoploss(trade, price, last_atr, total_position, portfolio_value, control_portfolio_value, cash, control_position):
             if len(trade) > 0:
@@ -157,25 +157,46 @@ columns=[
 ]
 )
 
-
-
-
-# Choose a random ticker, such as spy
-ticker = input("What is the ticker? ")
 #grab api and secret key from env vars
+
+
+ticker = input("What is the ticker symbol? ")
+
+user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
 
 api_key = os.getenv("ALPACA_API_KEY")
 secret_api_key = os.getenv("ALPACA_SECRET_KEY")
-
 client = StockHistoricalDataClient(api_key, secret_api_key)
 
-#grab data from that ticker
-request_params = StockBarsRequest(
+
+if user_time_preference == "1":
+        request_params = StockBarsRequest(
+        symbol_or_symbols=[ticker],
+        timeframe=TimeFrame.Day,     
+        start=datetime(1999, 1, 1),
+        end=datetime.now()
+                                        )
+elif user_time_preference == "2":
+     
+    start_year = int(input("What start year should it test on? (year number) "))
+    start_month = int(input("What start month should it test on? (month number) "))
+    start_day = int(input("What start day should it test on? (day number) "))
+
+    end_year = int(input("What end year should it stop? (year number) "))
+    end_month = int(input("What end month should it stop? (month number) "))
+    end_day = int(input("What end day should it stop? (day number) "))
+
+
+    request_params = StockBarsRequest(
     symbol_or_symbols=[ticker],
     timeframe=TimeFrame.Day,     
-    start=datetime.datetime(2000, 1, 1),
-    end=datetime.datetime(2021, 3, 1)
+    start=datetime(start_year, start_month, start_day),
+    end=datetime(end_year, end_month, end_day)
 )
+
+else:
+    raise ValueError("Did not choose valid option. (1 or 2)")
+
 #get bars for the data
 bars = client.get_stock_bars(request_params)
 
