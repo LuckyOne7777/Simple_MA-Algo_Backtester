@@ -154,11 +154,32 @@ columns=[
 
 
 # Choose a random ticker, such as spy
-ticker = "JNJ"
+ticker = input("What is the ticker symbol? ")
+
+start_year = input("What start year should it test on? (YYYY form) ")
+start_year = start_year + "-"
+
+start_month = input("What start month should it test on? (MM form) ")
+start_month = start_month + "-"
+
+start_day = input("What start day should it test on? (DD form) ")
+start_date = start_year + start_month + start_day
+
+end_year = input("What end year should it stop? (YYYY form) ")
+end_year = end_year + "-"
+
+end_month = input("What end month should it stop? (MM form) ")
+end_month = end_month + "-"
+
+end_day = input("What end day should it stop? (DD form) ")
+end_date = end_year + end_month + end_day
+
+
+data = yf.download(ticker, start=start_date, end=end_date)
+
 
 #using period max usually takes a while, to control the time frame use:
-# data = yf.download(ticker, start="YYYY-MM-DD", end="YYYY-MM-DD")
-data = yf.download(ticker, start="2015-01-01", end="2021-01-01")
+# data = yf.download(ticker, start="2015-01-01", end="2021-01-01")
 
 #reset data index back to default
 data = data.reset_index()
@@ -245,7 +266,7 @@ else:
         control_portfolio_df.set_index('Date', inplace=True)
 
         if len(portfolio_value) == 0 or len(control_portfolio_value) == 0:
-            raise ValueError("Cannot save: Empty portfolio data!")
+            raise ValueError("Cannot save: Empty portfolio data.")
 
         
 
@@ -285,33 +306,37 @@ else:
             'running_max',
             'version',
         ]
+        user_result = input("Would you like to save results to CSV? (y/n) ")
+        if user_result == "y":
+            print("Saving results...")
         #make sure folder exists
-        output_folder = "CSV files"
-        os.makedirs(output_folder, exist_ok=True)
+            output_folder = "CSV files"
+            os.makedirs(output_folder, exist_ok=True)
 
-        file_path = os.path.join(output_folder, "MA_backtest.csv")
+            file_path = os.path.join(output_folder, "MA_backtest.csv")
 
-        if os.path.exists(file_path):
-            df_existing = pd.read_csv(file_path)
+            if os.path.exists(file_path):
+                df_existing = pd.read_csv(file_path)
 
     # Append new summary
-            df_updated = pd.concat([df_existing, summary], ignore_index=True)
+                df_updated = pd.concat([df_existing, summary], ignore_index=True)
 
     # Drop duplicates by 'symbol' and 'version' if needed
-            df_updated.drop_duplicates(subset=["symbol", "version"], keep="last", inplace=True)
+                df_updated.drop_duplicates(subset=["symbol", "version"], keep="last", inplace=True)
 
     # Save it back
-            df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
-        else:
-            summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+                df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+            else:
+                summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
       
-        summary.to_csv(
-            file_path,
-            mode='a' if os.path.exists(file_path) else 'w',
-            header=not os.path.exists(file_path),
-            index=False,
-            columns=ALL_COLUMNS,
-        )
+            summary.to_csv(
+                file_path,
+                mode='a' if os.path.exists(file_path) else 'w',
+                header=not os.path.exists(file_path),
+                index=False,
+                columns=ALL_COLUMNS,
+                        )
+            
         fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
 
 # Plot on first subplot (ax1)
