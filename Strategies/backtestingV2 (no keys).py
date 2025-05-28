@@ -185,7 +185,6 @@ columns=[
 ticker = input("What is the ticker symbol? ")
 
 user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
-print(user_time_preference)
 if user_time_preference == "1":
     data = yf.download(ticker, period="max")
 
