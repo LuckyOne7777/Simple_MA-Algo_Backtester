@@ -31,6 +31,34 @@ def update_stoploss(trade, price, last_atr, total_position, portfolio_value, con
             portfolio_value.append(total_value)
             control_portfolio_value.append(total_control_value)
 
+def plot_results(buy_points, sell_points, price_df, portfolio_df, control_portfolio_df):
+            
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
+
+# Plot on first subplot (ax1)
+    ax1.scatter(buy_points['X'], buy_points['Y'] - 1, color = 'blue', marker = '^', s =10, label = "Buy Signal")
+    ax1.scatter(sell_points['EXITDATE'], sell_points['EXIT_PRICE'] + 1, color='red', marker = 'v', s=10, label = "Sell Signal")
+    ax1.plot(portfolio_df.index, price_df['Price'], color="green", alpha = 0.7)
+    ax1.set_ylabel('Price')
+    ax1.set_title('Price Chart')
+    ax1.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.2f}'))
+    ax1.grid(True)
+    ax1.legend()
+
+
+    # Plot on second subplot (ax2)
+    ax2.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
+    ax2.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", color ="orange")
+    ax2.set_ylabel('Portfolio Value')
+    ax2.set_xlabel('Date')
+    ax2.set_title(f'Backtest Results for {ticker}')
+    ax2.ticklabel_format(style='plain', axis='y')
+    ax2.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
+    ax2.grid(True)
+    ax2.legend()
+
+    plt.show()
+
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
     gain = np.where(delta > 0, delta, 0)
@@ -346,31 +374,8 @@ else:
                 columns=ALL_COLUMNS,
                         )
             
-        fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
+        plot_results(buy_points, sell_points, price_df, portfolio_df, control_portfolio_df)
 
-# Plot on first subplot (ax1)
-        ax1.scatter(buy_points['X'], buy_points['Y'] - 1, color = 'blue', marker = '^', s =10, label = "Buy Signal")
-        ax1.scatter(sell_points['EXITDATE'], sell_points['EXIT_PRICE'] + 1, color='red', marker = 'v', s=10, label = "Sell Signal")
-        ax1.plot(portfolio_df.index, price_df['Price'], color="green", alpha = 0.7)
-        ax1.set_ylabel('Price')
-        ax1.set_title('Price Chart')
-        ax1.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.2f}'))
-        ax1.grid(True)
-        ax1.legend()
-
-
-    # Plot on second subplot (ax2)
-        ax2.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
-        ax2.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", color ="orange")
-        ax2.set_ylabel('Portfolio Value')
-        ax2.set_xlabel('Date')
-        ax2.set_title(f'Backtest Results for {ticker}')
-        ax2.ticklabel_format(style='plain', axis='y')
-        ax2.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
-        ax2.grid(True)
-        ax2.legend()
-
-        plt.show()
         #print the head and tail of trade DataFrame
 
         print(trade.head())
