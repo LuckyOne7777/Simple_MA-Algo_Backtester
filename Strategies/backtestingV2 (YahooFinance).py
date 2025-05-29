@@ -7,6 +7,72 @@ import os
 import time
 import yfinance as yf
 
+def line_break():
+     print("=============================================================================================")
+
+def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value):
+     #calculate stats for CSV summary
+        cagr = ((portfolio_value[-1] / starting_cap) ** (1 / num_of_years) - 1) * 100
+        running_max = portfolio_df['Portfolio_Value'].cummax()
+        drawdown = (portfolio_df['Portfolio_Value'] - running_max) / running_max
+        max_drawdown = drawdown.min()
+
+        #DF for summary to CSV file
+        summary = pd.DataFrame([{
+            'symbol': ticker,
+            'end_val': f"${math.floor(portfolio_value[-1]):,.0f}",
+            'winner': 'Strategy' if portfolio_value[-1] > control_portfolio_value[-1] else 'Benchmark',
+            'trades': f"{round(trade_num / num_of_years, 1):,.1f}",
+            'cagr': f"{round(cagr, 2)}%",
+            'median': f"${round(float(np.median(portfolio_value))):,.0f}",
+            'average': f"${round(float(np.mean(portfolio_value))):,.0f}",
+            'max_drawdown': f"{round(max_drawdown * 100, 2)}%",
+            'running_max': f"${running_max.iloc[-1]:,.0f}",
+            'version': "V2",
+        }])
+
+        ALL_COLUMNS = [
+            'symbol',
+            'end_val',
+            'winner',
+            'trades',
+            'cagr',
+            'median',
+            'average',
+            'max_drawdown',
+            'running_max',
+            'version',
+        ]
+        
+        user_CSV_preference = input("Would you like to save results to CSV? (y/n) ")
+        if user_CSV_preference == "y":
+            print("Saving results...")
+        #make sure folder exists
+            output_folder = "CSV files"
+            os.makedirs(output_folder, exist_ok=True)
+
+            file_path = os.path.join(output_folder, "MA_backtest.csv")
+
+            if os.path.exists(file_path):
+                df_existing = pd.read_csv(file_path)
+
+    # Append new summary
+                df_updated = pd.concat([df_existing, summary], ignore_index=True)
+
+    # Drop duplicates by 'symbol' and 'version' if needed
+                df_updated.drop_duplicates(subset=["symbol", "version"], keep="last", inplace=True)
+
+    # Save it back
+                df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+            else:
+                summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+            line_break()
+            print(summary)
+            line_break()
+        else:
+            line_break()
+            print(summary)
+            line_break()
 def update_stoploss(trade, price, last_atr, total_position, portfolio_value, control_portfolio_value, cash, control_position):
             if len(trade) > 0:
                 for l in range (len(trade)):
@@ -180,8 +246,6 @@ columns=[
 ]
 )
 
-
-# Choose a random ticker, such as spy
 ticker = input("What is the ticker symbol? ")
 
 user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
@@ -214,12 +278,8 @@ elif user_time_preference == "2":
 else:
     raise ValueError("Did not choose valid option. (1 or 2)")
 
-#using period max usually takes a while, to control the time frame use:
-# data = yf.download(ticker, start="2015-01-01", end="2021-01-01")
-
 #reset data index back to default
 data = data.reset_index()
-
 
 if isinstance(data.columns, pd.MultiIndex):
     data.columns = data.columns.get_level_values(0)
@@ -306,73 +366,9 @@ else:
 
         
 
-        #calculate stats for CSV summary
-        end_val = math.floor(portfolio_value[-1])
-        trades_per_year = trade_num / num_of_years
-        cagr = ((portfolio_value[-1] / starting_cap) ** (1 / num_of_years) - 1) * 100
-        median_val = round(float(np.median(portfolio_value)), 2)
-        avg_val = round(float(np.mean(portfolio_value)), 2)
-        running_max = portfolio_df['Portfolio_Value'].cummax()
-        drawdown = (portfolio_df['Portfolio_Value'] - running_max) / running_max
-        max_drawdown = drawdown.min()
+        CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value)
 
-        #DF for summary to CSV file
-        summary = pd.DataFrame([{
-            'symbol': ticker,
-            'end_val': f"${end_val:,.0f}",
-            'winner': 'Strategy' if portfolio_value[-1] > control_portfolio_value[-1] else 'Benchmark',
-            'trades': round(trades_per_year, 1),
-            'cagr': f"{round(cagr, 2)}%",
-            'median': f"${median_val:,.0f}",
-            'average': f"${avg_val:,.0f}",
-            'max_drawdown': f"{round(max_drawdown * 100, 2)}%",
-            'running_max': f"${running_max.iloc[-1]:,.0f}",
-            'version': "V2",
-        }])
 
-        ALL_COLUMNS = [
-            'symbol',
-            'end_val',
-            'winner',
-            'trades',
-            'cagr',
-            'median',
-            'average',
-            'max_drawdown',
-            'running_max',
-            'version',
-        ]
-        user_CSV_preference = input("Would you like to save results to CSV? (y/n) ")
-        if user_CSV_preference == "y":
-            print("Saving results...")
-        #make sure folder exists
-            output_folder = "CSV files"
-            os.makedirs(output_folder, exist_ok=True)
-
-            file_path = os.path.join(output_folder, "MA_backtest.csv")
-
-            if os.path.exists(file_path):
-                df_existing = pd.read_csv(file_path)
-
-    # Append new summary
-                df_updated = pd.concat([df_existing, summary], ignore_index=True)
-
-    # Drop duplicates by 'symbol' and 'version' if needed
-                df_updated.drop_duplicates(subset=["symbol", "version"], keep="last", inplace=True)
-
-    # Save it back
-                df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
-            else:
-                summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
-      
-            summary.to_csv(
-                file_path,
-                mode='a' if os.path.exists(file_path) else 'w',
-                header=not os.path.exists(file_path),
-                index=False,
-                columns=ALL_COLUMNS,
-                        )
-            
         plot_results(buy_points, sell_points, price_df, portfolio_df, control_portfolio_df)
 
         #print the head and tail of trade DataFrame
