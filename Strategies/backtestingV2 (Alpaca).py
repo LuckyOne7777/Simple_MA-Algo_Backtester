@@ -10,6 +10,7 @@ from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 from datetime import datetime
 
+
 def line_break():
      print("=============================================================================================")
     

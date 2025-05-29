@@ -10,6 +10,41 @@ import yfinance as yf
 def line_break():
      print("=============================================================================================")
 
+def grab_YFdata():
+     
+    ticker = input("What is the ticker symbol? ")
+
+    user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
+    if user_time_preference == "1":
+        data = yf.download(ticker, period="max")
+
+    elif user_time_preference == "2":
+     
+        start_year = input("What start year should it test on? (YYYY form) ")
+        start_year = start_year + "-"
+
+        start_month = input("What start month should it test on? (MM form) ")
+        start_month = start_month + "-"
+
+        start_day = input("What start day should it test on? (DD form) ")
+        start_date = start_year + start_month + start_day
+
+        end_year = input("What end year should it stop? (YYYY form) ")
+        end_year = end_year + "-"
+
+        end_month = input("What end month should it stop? (MM form) ")
+        end_month = end_month + "-"
+
+        end_day = input("What end day should it stop? (DD form) ")
+        end_date = end_year + end_month + end_day
+
+
+        data = yf.download(ticker, start=start_date, end=end_date)
+
+    else:
+        raise ValueError("Did not choose valid option. (1 or 2)")
+    return data, ticker,
+
 def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value):
      #calculate stats for CSV summary
         cagr = ((portfolio_value[-1] / starting_cap) ** (1 / num_of_years) - 1) * 100
@@ -246,37 +281,7 @@ columns=[
 ]
 )
 
-ticker = input("What is the ticker symbol? ")
-
-user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
-if user_time_preference == "1":
-    data = yf.download(ticker, period="max")
-
-elif user_time_preference == "2":
-     
-    start_year = input("What start year should it test on? (YYYY form) ")
-    start_year = start_year + "-"
-
-    start_month = input("What start month should it test on? (MM form) ")
-    start_month = start_month + "-"
-
-    start_day = input("What start day should it test on? (DD form) ")
-    start_date = start_year + start_month + start_day
-
-    end_year = input("What end year should it stop? (YYYY form) ")
-    end_year = end_year + "-"
-
-    end_month = input("What end month should it stop? (MM form) ")
-    end_month = end_month + "-"
-
-    end_day = input("What end day should it stop? (DD form) ")
-    end_date = end_year + end_month + end_day
-
-
-    data = yf.download(ticker, start=start_date, end=end_date)
-
-else:
-    raise ValueError("Did not choose valid option. (1 or 2)")
+data, ticker = grab_YFdata()
 
 #reset data index back to default
 data = data.reset_index()
