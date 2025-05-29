@@ -1,12 +1,12 @@
 # Simple Trading Algo Backtest
 
-Hi! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is my first attempt at building a somewhat passable algo using a basic moving average crossover strategy. Ignore some of my first commit messages, was still getting used to GitHub lol.
+Hi! Thanks for checking out my project. I'm a high school student who's just starting out with coding and experimenting with stock trading algorithms. This is a very simple backtesting engine with a Simple Moving Average (so far). Ignore some of my first commit messages, was still getting used to GitHub (I'll try to fix them using rebase later).
 
 ---
 
 ## Background
 
-This was my **first real Python project** — and also my first attempt at algorithmic trading. I know moving averages are basic and often ineffective compared to more advanced models, but the goal here was to:
+This was my **first real Python project** — and also my first attempt at algorithmic trading. I know moving averages are basic and ineffective compared to more advanced models, but the goal here was to:
 
 - Get familiar with data manipulation and common Python libraries
 - Learn how to fetch and process stock data
@@ -20,7 +20,7 @@ This was my **first real Python project** — and also my first attempt at algor
 
 ## Requirements
 
-To run the files, you'll need the following (very basic) libraries:
+To run the files, you'll need the following libraries:
 
 - `yfinance`
 - `pandas`
@@ -37,46 +37,44 @@ pip install yfinance pandas numpy matplotlib alpaca-py lxml
 
 ## What's Inside
 
-### `backtesting.py`
-My first-ever algo! It's a bit messy, but it works somewhat.
+### `Strategies Folder`
+Many of the files are just for function calls, the important one is `main.py`. To see the code, look inside `SMA_Stratgies.py`.
 
-Trades based on:
-- 50/200 Moving Average Crossover
-- RSI filtering
-- Backtests using `yfinance` data
-- Visualizes results with matplotlib
-- Saves summary stats to CSV
-- Tracks portfolio value and compares to a buy-and-hold benchmark
+  ### `main.py`
+  
+  The second version of my strategy, currently being refined and improved. Major updates so far include:
 
-> Not planning to update this file — keeping it as my original version for reference.
+  - Cleaner, faster code
+  - Dynamic ATR-based stop-loss
+  - Position sizing
+  - Trade tracking with a dedicated DataFrame
+  - Benchmark and portfolio performance over time
+  - graph of buy and sell signals
+  - modularized functions
+    
+  Once you start the program, you will have the option to choose between YahooFinance and Alpaca for historical data. To use Alpaca's data, you will need to have an Alpaca API key: `ALPACA_SECRET_KEY` and Alpaca   secret key: `ALPACA_SECRET_KEY` in your system's environmental varibles. If this is an issue, using YahooFinance is an easy alternative.
+
+---
+### `Archive` folder 
+Inside, you will find some older stratgies I created first. To make any changes to the ticker or timeframe, you will have to edit the file. I'm not planning on updating them - just keeping them as reference.
+
+  ### `backtesting.py`
+  My first-ever algo! It's a bit messy, but it works somewhat.
+  
+  Trades based on:
+  - 50/200 Moving Average Crossover
+  - RSI filtering
+  - Backtests using `yfinance` data
+  - Visualizes results with matplotlib
+  - Saves summary stats to CSV
+  - Tracks portfolio value and compares to a buy-and-hold benchmark
 
 ---
 
-### `backtesting sp500.py`
-Runs the same strategy as above, however runs a loop across all S&P 500 tickers and saves a summary of each backtest to the CSV file.
+  ### `backtesting sp500.py`
+  Runs the same strategy as above, however runs a loop across all S&P 500 tickers and saves a summary of each backtest to the CSV file.
 
 ---
-
-### `backtesting v2.py`
-The second version of my strategy, currently being refined and improved. Major updates so far include:
-
-- Cleaner, faster code
-- Dynamic ATR-based stop-loss
-- Position sizing
-- Trade tracking with a dedicated DataFrame
-- Benchmark and portfolio performance over time
-
-Also, you will need to have an Alpaca API key: `ALPACA_SECRET_KEY` and Alpaca secret key: `ALPACA_SECRET_KEY` in your system's environmental varibles to run V2.
-If this is an issue, you can run `backtestingV2 (no keys).py` for the same result.
-
----
-
-### `backtestingV2 (no keys).py`
-
-Exactly how it sounds, same as version 2 but Alpaca keys aren't necessary.
-
----
-
 ### `Data Folder`
 
 Just an experimental idea I'm trying to store free data from YF so I won't have to download everytime.
@@ -96,7 +94,6 @@ Here’s what I would like to do next:
 
 - Refine the current logic and filters
 - Improve the structure of CSV outputs
-- Create a modular framework for running and testing strategies
 - Explore more advanced indicators and maybe even ML in the future
 - Create more strategies when I'm finished working on Moving-Averages
 
