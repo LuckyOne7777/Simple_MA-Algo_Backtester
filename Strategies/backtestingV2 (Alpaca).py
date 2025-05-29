@@ -10,6 +10,59 @@ from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 from datetime import datetime
 
+def get_Alpaca_data():
+    ticker = input("What is the ticker symbol? ")
+
+    user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
+
+    api_key = os.getenv("ALPACA_API_KEY")
+    secret_api_key = os.getenv("ALPACA_SECRET_KEY")
+    client = StockHistoricalDataClient(api_key, secret_api_key)
+
+
+    if user_time_preference == "1":
+        request_params = StockBarsRequest(
+        symbol_or_symbols=[ticker],
+        timeframe=TimeFrame.Day,     
+        start=datetime(1999, 1, 1),
+        end=datetime.now()
+                                        )
+    elif user_time_preference == "2":
+     
+        start_year = int(input("What start year should it test on? (year number) "))
+        start_month = int(input("What start month should it test on? (month number) "))
+        start_day = int(input("What start day should it test on? (day number) "))
+
+        end_year = int(input("What end year should it stop? (year number) "))
+        end_month = int(input("What end month should it stop? (month number) "))
+        end_day = int(input("What end day should it stop? (day number) "))
+
+
+        request_params = StockBarsRequest(
+            symbol_or_symbols=[ticker],
+            timeframe=TimeFrame.Day,     
+            start=datetime(start_year, start_month, start_day),
+            end=datetime(end_year, end_month, end_day)
+                                        )
+
+    else:
+        raise ValueError("Did not choose valid option. (1 or 2)")
+
+#get bars for the data
+    bars = client.get_stock_bars(request_params)
+
+    data = bars.df
+    #reset data index back to normal
+    data = data.reset_index()
+
+#only get the date from timestamp frame
+    data['Date'] = pd.to_datetime(data['timestamp']).dt.date
+
+
+    if isinstance(data.columns, pd.MultiIndex):
+        data.columns = data.columns.get_level_values(0)
+    return data, ticker
+
 
 def line_break():
      print("=============================================================================================")
@@ -257,60 +310,7 @@ columns=[
 
 #grab api and secret key from env vars
 
-
-ticker = input("What is the ticker symbol? ")
-
-user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
-
-api_key = os.getenv("ALPACA_API_KEY")
-secret_api_key = os.getenv("ALPACA_SECRET_KEY")
-client = StockHistoricalDataClient(api_key, secret_api_key)
-
-
-if user_time_preference == "1":
-        request_params = StockBarsRequest(
-        symbol_or_symbols=[ticker],
-        timeframe=TimeFrame.Day,     
-        start=datetime(1999, 1, 1),
-        end=datetime.now()
-                                        )
-elif user_time_preference == "2":
-     
-    start_year = int(input("What start year should it test on? (year number) "))
-    start_month = int(input("What start month should it test on? (month number) "))
-    start_day = int(input("What start day should it test on? (day number) "))
-
-    end_year = int(input("What end year should it stop? (year number) "))
-    end_month = int(input("What end month should it stop? (month number) "))
-    end_day = int(input("What end day should it stop? (day number) "))
-
-
-    request_params = StockBarsRequest(
-    symbol_or_symbols=[ticker],
-    timeframe=TimeFrame.Day,     
-    start=datetime(start_year, start_month, start_day),
-    end=datetime(end_year, end_month, end_day)
-)
-
-else:
-    raise ValueError("Did not choose valid option. (1 or 2)")
-
-#get bars for the data
-bars = client.get_stock_bars(request_params)
-
-#not currently using an endpoint but just in case in the future
-ENDPOINT = "https://paper-api.alpaca.markets/v2"
-
-data = bars.df
-    #reset data index back to normal
-data = data.reset_index()
-
-#only get the date from timestamp frame
-data['Date'] = pd.to_datetime(data['timestamp']).dt.date
-
-
-if isinstance(data.columns, pd.MultiIndex):
-    data.columns = data.columns.get_level_values(0)
+data, ticker = get_Alpaca_data()
 
 if data.empty or len(data) < 200:
         print(f"No sufficient data for {ticker}")
