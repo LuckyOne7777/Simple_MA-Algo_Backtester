@@ -12,6 +12,7 @@ from datetime import datetime
 
 def get_Alpaca_data():
     ticker = input("What is the ticker symbol? ")
+    ticker = ticker.upper()
 
     user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
 
@@ -61,6 +62,8 @@ def get_Alpaca_data():
 
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
+    if data.empty or len(data) < 200:
+        print(f"No sufficient data for {ticker}")
     return data, ticker
 
 
@@ -132,7 +135,7 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
             print(summary)
             line_break()
         
-def plot_results(buy_points, sell_points, price_df, portfolio_df, control_portfolio_df):
+def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df):
             
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
 
@@ -290,114 +293,122 @@ def SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, pric
             trade.at[index, 'W_TRADE?'] = False
     return position, trade_num, cash, buy_num, stoploss,
 
-#create dataframe for tracking trades 
-trade = pd.DataFrame(
-columns=[
-'NUMBER',
-'STOPLOSS',
-'SHARE_#',
-'BUY_DATE',
-'PRICE_BOUGHT',
-'EXITDATE',
-'ACTIVE?',
-'W_TRADE?',
-'INTIAL_VAL',
-'VALUE',
-'LAST_UPDATE',
-'EXIT_PRICE',
-]
-)
+def complete_SMA_function():
+    trade = pd.DataFrame(columns=[
+        'NUMBER',
+        'STOPLOSS',
+        'SHARE_#',
+        'BUY_DATE',
+        'PRICE_BOUGHT',
+        'EXITDATE',
+        'ACTIVE?',
+        'W_TRADE?',
+        'INTIAL_VAL',
+        'VALUE',
+        'LAST_UPDATE',
+        'EXIT_PRICE',
+    ])
 
-#grab api and secret key from env vars
+    # Grab API and secret key from env vars
+    data, ticker = get_Alpaca_data()
 
-data, ticker = get_Alpaca_data()
+    data['SMA_50'] = data['close'].rolling(window=50).mean()
+    data['SMA_200'] = data['close'].rolling(window=200).mean()
+    data['RSI'] = calculate_rsi(data)
+    data['ATR'] = calculate_atr(data, 14)
 
-if data.empty or len(data) < 200:
-        print(f"No sufficient data for {ticker}")
-else:
-        data['SMA_50'] = data['close'].rolling(window=50).mean()
-        data['SMA_200'] = data['close'].rolling(window=200).mean()
-        data['RSI'] = calculate_rsi(data)
-        data['ATR'] = calculate_atr(data, 14)
+    # Define starting capital and variables
+    capital = 10000
+    starting_cap = capital
+    position = 0
+    cash = capital
+    portfolio_value = []
+    control_portfolio_value = []
+    control_capital = capital
+    trade_num = 0
+    buy_num = 0
+    stoploss = 0
+    active_trades = 0
+    total_position = 0
+    current_year = 0
+    first_price = float(data['close'].iloc[200])
+    control_position = math.floor(starting_cap / first_price)
+    num_of_years = len(data) / 251
 
-        #define starting capital and varibles
-        capital = 10000
-        starting_cap = capital
-        position = 0
-        cash = capital
-        portfolio_value = []
-        control_portfolio_value = []
-        control_capital = capital
-        trade_num = 0
-        buy_num = 0
-        stoploss = 0
-        active_trades = 0
-        total_position = 0
-        current_year = 0
-        first_price = float(data['close'].iloc[200])
-        control_position = math.floor(starting_cap / first_price)
-        num_of_years = len(data) / 251
-        #for loop for number of trading days avalible for the ticker
-        print("starting loop, please stand by..")
-        time_start = time.time()
+    # Loop over available trading days
+    print("Starting loop, please stand by...")
+    time_start = time.time()
 
-        price_data = []
+    price_data = []
 
-        for i in range(200, len(data)):
-            date = data.at[data.index[i],'Date']
-            last_SMA_50 = data.at[data.index[i],'SMA_50']
-            last_SMA_200 = data.at[data.index[i],'SMA_200']
-            last_RSI = data.at[data.index[i],'RSI']
-            last_atr = data.at[data.index[i],'ATR']
-            price = data.at[data.index[i],'close']
-            #postition sizing of 5% of total value to trade
-            cash_per_trade = cash * 0.05
-
-            price_data.append({
-                'Date': data.at[data.index[i], 'Date'],
-                'Price': int(data.at[data.index[i], 'close'])
-            })
-
-            price_df = pd.DataFrame(price_data)
-            price_df.set_index('Date', inplace=True)
-
-            yesterdays_price = round(data.at[data.index[i - 1],'close'], 2)
-            last_week_price = round(data.at[data.index[i - 5], 'close'], 2)
-
-            position, trade_num, cash, buy_num, stoploss = SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date,position, trade_num, cash, buy_num, stoploss)
-
-            update_stoploss(trade, price, last_atr, total_position, portfolio_value, control_portfolio_value, cash, control_position)
-
-
-
-
-            if i % 252 == 0:
-                current_year+= 1
-                print(f"Year {current_year}: done! {math.ceil(num_of_years - current_year)} year(s) left.") 
-
-    #after loop is over
-
-        end_time = time.time()
-
-        sell_points = trade[trade['ACTIVE?'] == False]
-
-        buy_points = pd.DataFrame({'X': trade['BUY_DATE'], 'Y': trade['PRICE_BOUGHT']})
-
-        portfolio_df = pd.DataFrame({'Date': data.loc[data.index[200:], 'Date'], 'Portfolio_Value': portfolio_value})
-        portfolio_df.set_index('Date', inplace=True)
-
-        control_portfolio_df = pd.DataFrame({'Date': data.loc[data.index[200:], 'Date'], 'Control_Portfolio_Value': control_portfolio_value})
-        control_portfolio_df.set_index('Date', inplace=True)
-
-        if len(portfolio_value) == 0 or len(control_portfolio_value) == 0:
-            raise ValueError("Cannot save: Empty portfolio data!")
-
-        CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value)
-
-        plot_results(buy_points, sell_points, price_df, portfolio_df, control_portfolio_df)
-
-        print(trade.head())
-        print(trade.tail())
-        print(f"Results saved successfully! Done with {ticker}")
-        print(f" program time: {round(end_time - time_start, 2)} secs")
+    for i in range(200, len(data)):
+        date = data.at[data.index[i], 'Date']
+        last_SMA_50 = data.at[data.index[i], 'SMA_50']
+        last_SMA_200 = data.at[data.index[i], 'SMA_200']
+        last_RSI = data.at[data.index[i], 'RSI']
+        last_atr = data.at[data.index[i], 'ATR']
+        price = data.at[data.index[i], 'close']
         
+        # Position sizing: 5% of cash
+        cash_per_trade = cash * 0.05
+
+        price_data.append({
+            'Date': data.at[data.index[i], 'Date'],
+            'Price': int(data.at[data.index[i], 'close'])
+        })
+
+        price_df = pd.DataFrame(price_data)
+        price_df.set_index('Date', inplace=True)
+
+        yesterdays_price = round(data.at[data.index[i - 1], 'close'], 2)
+        last_week_price = round(data.at[data.index[i - 5], 'close'], 2)
+
+        position, trade_num, cash, buy_num, stoploss = SMAtrade_execution(
+            last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price,
+            trade, last_atr, date, position, trade_num, cash, buy_num, stoploss
+        )
+
+        update_stoploss(
+            trade, price, last_atr, total_position, portfolio_value,
+            control_portfolio_value, cash, control_position
+        )
+
+        if i % 252 == 0:
+            current_year += 1
+            print(f"Year {current_year}: done! {math.ceil(num_of_years - current_year)} year(s) left.") 
+
+    # After loop is over
+    end_time = time.time()
+
+    sell_points = trade[trade['ACTIVE?'] == False]
+    buy_points = pd.DataFrame({'X': trade['BUY_DATE'], 'Y': trade['PRICE_BOUGHT']})
+
+    portfolio_df = pd.DataFrame({
+        'Date': data.loc[data.index[200:], 'Date'],
+        'Portfolio_Value': portfolio_value
+    })
+    portfolio_df.set_index('Date', inplace=True)
+
+    control_portfolio_df = pd.DataFrame({
+        'Date': data.loc[data.index[200:], 'Date'],
+        'Control_Portfolio_Value': control_portfolio_value
+    })
+    control_portfolio_df.set_index('Date', inplace=True)
+
+    if len(portfolio_value) == 0 or len(control_portfolio_value) == 0:
+        raise ValueError("Cannot save: Empty portfolio data!")
+
+    CSV_handling(
+        portfolio_value, trade_num, num_of_years, ticker,
+        starting_cap, portfolio_df, control_portfolio_value
+    )
+
+    plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df)
+
+    print(trade.head())
+    print(trade.tail())
+    print(f"Results saved successfully! Done with {ticker}")
+    print(f"Program time: {round(end_time - time_start, 2)} secs")
+
+
+complete_SMA_function()
