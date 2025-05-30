@@ -125,11 +125,9 @@ def complete_SMA_function():
     cash = capital
     portfolio_value = []
     control_portfolio_value = []
-    control_capital = capital
     trade_num = 0
     buy_num = 0
     stoploss = 0
-    active_trades = 0
     total_position = 0
     current_year = 0
     first_price = float(data['close'].iloc[200])
