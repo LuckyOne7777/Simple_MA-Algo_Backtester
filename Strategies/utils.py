@@ -7,7 +7,7 @@ import math
 import os
 
 def line_break():
-     print("=============================================================================================")
+     print("==============================================================================================")
 
 def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value):
      #calculate stats for CSV summary

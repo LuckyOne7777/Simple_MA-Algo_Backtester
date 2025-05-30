@@ -1,2 +1,3 @@
 from SMA_functions import complete_SMA_function
+
 complete_SMA_function()
