@@ -161,9 +161,6 @@ def complete_SMA_function():
         price_df = pd.DataFrame(price_data)
         price_df.set_index('Date', inplace=True)
 
-        yesterdays_price = round(data.at[data.index[i - 1], 'close'], 2)
-        last_week_price = round(data.at[data.index[i - 5], 'close'], 2)
-
         position, trade_num, cash, buy_num, stoploss = SMAtrade_execution(
             last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price,
             trade, last_atr, date, position, trade_num, cash, buy_num, stoploss
