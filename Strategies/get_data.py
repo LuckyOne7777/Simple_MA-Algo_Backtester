@@ -23,7 +23,7 @@ def grab_Alpaca_data():
         symbol_or_symbols=[ticker],
         timeframe=TimeFrame.Day,     
         start=datetime(1999, 1, 1),
-        end=datetime.now()
+        end=datetime.now(),
                                         )
     elif user_time_preference == "2":
      
@@ -40,7 +40,7 @@ def grab_Alpaca_data():
             symbol_or_symbols=[ticker],
             timeframe=TimeFrame.Day,     
             start=datetime(start_year, start_month, start_day),
-            end=datetime(end_year, end_month, end_day)
+            end=datetime(end_year, end_month, end_day),
                                         )
 
     else:
@@ -50,6 +50,7 @@ def grab_Alpaca_data():
     bars = client.get_stock_bars(request_params)
 
     data = bars.df
+
     #reset data index back to normal
     data = data.reset_index()
 

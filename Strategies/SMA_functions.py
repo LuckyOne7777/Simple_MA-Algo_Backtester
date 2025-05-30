@@ -110,8 +110,13 @@ def complete_SMA_function():
     data, ticker, user_data_choice, = choose_data()
     
     if user_data_choice == "YF":
-        data.rename(columns={"Close": "close", "Date": "date"}, inplace=True)
-        data['date'] = pd.to_datetime(data['date'])
+        required_col = {"Close", "Date", "High", "Low"}
+        if not required_col.issubset(data.columns):
+            raise ValueError(f"Missing one of these johns: {required_col}")
+        
+        data.rename(columns={"Close": "close", "Date": "date", "High": "high", "Low": "low"}, inplace=True)
+    else:    
+        data['date'] = pd.to_datetime(data['timestamp'])
 
     data['SMA_50'] = data['close'].rolling(window=50).mean()
     data['SMA_200'] = data['close'].rolling(window=200).mean()
@@ -135,13 +140,13 @@ def complete_SMA_function():
     num_of_years = len(data) / 251
 
     # Loop over available trading days
-    print("Starting loop, please stand by...")
+    print("Starting test, please stand by...")
     time_start = time.time()
 
     price_data = []
 
     for i in range(200, len(data)):
-        date = data.at[data.index[i], 'Date']
+        date = data.at[data.index[i], 'date']
         last_SMA_50 = data.at[data.index[i], 'SMA_50']
         last_SMA_200 = data.at[data.index[i], 'SMA_200']
         last_RSI = data.at[data.index[i], 'RSI']
@@ -152,10 +157,9 @@ def complete_SMA_function():
         cash_per_trade = cash * 0.05
 
         price_data.append({
-            'Date': data.at[data.index[i], 'Date'],
+            'Date': data.at[data.index[i], 'date'],
             'Price': int(data.at[data.index[i], 'close'])
         })
-
         price_df = pd.DataFrame(price_data)
         price_df.set_index('Date', inplace=True)
 
@@ -198,7 +202,6 @@ def complete_SMA_function():
         portfolio_value, trade_num, num_of_years, ticker,
         starting_cap, portfolio_df, control_portfolio_value
     )
-
     plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df)
 
     print(trade.head())
