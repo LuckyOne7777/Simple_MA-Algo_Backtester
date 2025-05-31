@@ -110,14 +110,9 @@ def complete_SMA_function():
     data, ticker, user_data_choice, = choose_data()
     
     if user_data_choice == "YF":
-        required_col = {"Close", "Date", "High", "Low"}
-        if not required_col.issubset(data.columns):
-            raise ValueError(f"Missing one of these johns: {required_col}")
-        
         data.rename(columns={"Close": "close", "Date": "date", "High": "high", "Low": "low"}, inplace=True)
-    else:    
-        data['date'] = pd.to_datetime(data['timestamp'])
-
+    else:
+        data['date'] = pd.to_datetime(data['timestamp']).dt.date
     data['SMA_50'] = data['close'].rolling(window=50).mean()
     data['SMA_200'] = data['close'].rolling(window=200).mean()
     data['RSI'] = calculate_rsi(data)
@@ -184,13 +179,13 @@ def complete_SMA_function():
     buy_points = pd.DataFrame({'X': trade['BUY_DATE'], 'Y': trade['PRICE_BOUGHT']})
 
     portfolio_df = pd.DataFrame({
-        'Date': data.loc[data.index[200:], 'Date'],
+        'Date': data.loc[data.index[200:], 'date'],
         'Portfolio_Value': portfolio_value
     })
     portfolio_df.set_index('Date', inplace=True)
 
     control_portfolio_df = pd.DataFrame({
-        'Date': data.loc[data.index[200:], 'Date'],
+        'Date': data.loc[data.index[200:], 'date'],
         'Control_Portfolio_Value': control_portfolio_value
     })
     control_portfolio_df.set_index('Date', inplace=True)

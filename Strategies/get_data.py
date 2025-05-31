@@ -55,7 +55,7 @@ def grab_Alpaca_data():
     data = data.reset_index()
 
 #only get the date from timestamp frame
-    data['Date'] = pd.to_datetime(data['timestamp']).dt.date
+    data['date'] = pd.to_datetime(data['timestamp']).dt.date
 
 
     if isinstance(data.columns, pd.MultiIndex):
@@ -71,7 +71,10 @@ def grab_YFdata():
     user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
     if user_time_preference == "1":
         data = yf.download(ticker, period="max")
+        data.reset_index(inplace= True)
 
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = data.columns.get_level_values(0)
     elif user_time_preference == "2":
      
         start_year = input("What start year should it test on? (YYYY form) ")
@@ -94,6 +97,10 @@ def grab_YFdata():
 
 
         data = yf.download(ticker, start=start_date, end=end_date)
+        data.reset_index(inplace= True)
+
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = data.columns.get_level_values(0)
 
     else:
         raise ValueError("Did not choose valid option. (1 or 2)")
@@ -102,7 +109,7 @@ def grab_YFdata():
 def choose_data():
     user_data_choice = input("Would you like historical data from Alpaca or Yahoo Finance? (1 for Alpaca/ 2 for YF) ")
     if user_data_choice == "1":
-        user_data_choice == "Alpaca"
+        user_data_choice = "Alpaca"
         data, ticker = grab_Alpaca_data()
     elif user_data_choice == "2":
         user_data_choice = "YF"
