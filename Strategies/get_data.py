@@ -96,7 +96,7 @@ def grab_YFdata():
         end_date = end_year + end_month + end_day
 
 
-        data = yf.download(ticker, start=start_date, end=end_date)
+        data = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True)
         data.reset_index(inplace= True)
 
         if isinstance(data.columns, pd.MultiIndex):
@@ -109,12 +109,15 @@ def grab_YFdata():
 def choose_data():
     user_data_choice = input("Would you like historical data from Alpaca or Yahoo Finance? (1 for Alpaca/ 2 for YF) ")
     if user_data_choice == "1":
-        user_data_choice = "Alpaca"
         data, ticker = grab_Alpaca_data()
     elif user_data_choice == "2":
-        user_data_choice = "YF"
         data, ticker = grab_YFdata()
     else:
         raise ValueError(f"{user_data_choice} is not a option. (1 or 2) ")
     
-    return data, ticker, user_data_choice
+    if user_data_choice == "2":
+        data.rename(columns={"Close": "close", "Date": "date", "High": "high", "Low": "low"}, inplace=True)
+    else:
+        data['date'] = pd.to_datetime(data['timestamp']).dt.date
+    
+    return data, ticker

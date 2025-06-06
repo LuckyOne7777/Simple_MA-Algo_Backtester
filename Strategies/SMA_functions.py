@@ -107,12 +107,8 @@ def complete_SMA_function():
     ])
 
     # Grab API and secret key from env vars
-    data, ticker, user_data_choice, = choose_data()
-    
-    if user_data_choice == "YF":
-        data.rename(columns={"Close": "close", "Date": "date", "High": "high", "Low": "low"}, inplace=True)
-    else:
-        data['date'] = pd.to_datetime(data['timestamp']).dt.date
+    data, ticker = choose_data()
+
     data['SMA_50'] = data['close'].rolling(window=50).mean()
     data['SMA_200'] = data['close'].rolling(window=200).mean()
     data['RSI'] = calculate_rsi(data)
@@ -139,7 +135,6 @@ def complete_SMA_function():
     time_start = time.time()
 
     price_data = []
-
     for i in range(200, len(data)):
         date = data.at[data.index[i], 'date']
         last_SMA_50 = data.at[data.index[i], 'SMA_50']
