@@ -170,7 +170,6 @@ def complete_SMA_function():
     cash = capital
     portfolio_value = []
     control_portfolio_value = []
-    price_data = []
     trade_num = 0
     buy_num = 0
     stoploss = 0
@@ -210,6 +209,12 @@ def complete_SMA_function():
         # Position sizing: 5% of cash
         cash_per_trade = cash * 0.05
 
+        price_data.append({
+            'Date': data[i, 0],
+            'Price': int(data[i, 1])
+        })
+        price_df = pd.DataFrame(price_data)
+        price_df.set_index('Date', inplace=True)
 
         position, trade_num, cash, buy_num, stoploss, trade = SMAtrade_execution(
             last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price,
@@ -231,14 +236,6 @@ def complete_SMA_function():
 
     # After loop is over
     end_time = time.time()
-
-    price_data = pd.DataFrame({
-            'Date': data[200:, 0],
-            'Price': data[200:, 1]
-        })
-    price_df = price_data
-
-    price_df.set_index('Date', inplace=True)
 
     sell_points = trade[trade[:, 6] == 0]
     buy_points = pd.DataFrame({'X': trade[:, 3], 'Y': trade[:, 4]})
@@ -265,5 +262,5 @@ def complete_SMA_function():
 
     print(f"Results saved successfully! Done with {ticker}")
     print(f"Program time: {round(end_time - time_start, 2)} secs")
-
-complete_SMA_function()
+if __name__ == "__main__":
+    complete_SMA_function()
