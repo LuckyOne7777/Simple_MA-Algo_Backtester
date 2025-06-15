@@ -95,6 +95,9 @@ def SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, pric
 # 10: 'LAST_UPDATE'   - Last price used to update stop-loss
 # 11: 'EXIT_PRICE'    - Price at which the trade was exited
 
+
+# 1 is true and 0 is false, -999 means unused value that will be updated later.
+
 #CHANGE THIS AT SOME POINT, just use another array for dates
         new_trade = np.zeros((1, 12), dtype=object)
 
@@ -148,8 +151,6 @@ def complete_SMA_function():
 # 10: 'LAST_UPDATE'   - Last price used to update stop-loss
 # 11: 'EXIT_PRICE'    - Price at which the trade was exited
 
-    # Grab API and secret key from env vars
-
     data, ticker = choose_data()
     data = data.dropna()
 
@@ -161,7 +162,6 @@ def complete_SMA_function():
     data['RSI'] = calculate_rsi(data)
     data['ATR'] = calculate_atr(data, 14)
 
-    print("columns: ",data.columns)
     data = data.values
  
     # Define starting capital and variables
@@ -242,9 +242,6 @@ def complete_SMA_function():
 
     sell_points = trade[trade[:, 6] == 0]
     buy_points = pd.DataFrame({'X': trade[:, 3], 'Y': trade[:, 4]})
-    print('num of days: ',len(data[200:, 0]))
-    print('num of portolifo_val updates:',len(portfolio_value))
-    print("number of trades: ",len(trade))
     portfolio_df = pd.DataFrame({
         'Date': data[200:, 0],
         'Portfolio_Value': portfolio_value
@@ -268,6 +265,5 @@ def complete_SMA_function():
 
     print(f"Results saved successfully! Done with {ticker}")
     print(f"Program time: {round(end_time - time_start, 2)} secs")
-    print(trade)
 if __name__ == "__main__":
     complete_SMA_function()
