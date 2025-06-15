@@ -80,7 +80,7 @@ def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, contro
 
 # Plot on first subplot (ax1)
     ax1.scatter(buy_points['X'], buy_points['Y'] - 1, color = 'blue', marker = '^', s =10, label = "Buy Signal")
-    ax1.scatter(sell_points['EXITDATE'], sell_points['EXIT_PRICE'] + 1, color='red', marker = 'v', s=10, label = "Sell Signal")
+    ax1.scatter(sell_points[:, 5], sell_points[:, 11] + 1, color='red', marker = 'v', s=10, label = "Sell Signal")
     ax1.plot(portfolio_df.index, price_df['Price'], color="green", alpha = 0.7)
     ax1.set_ylabel('Price')
     ax1.set_title('Price Chart')
@@ -101,5 +101,4 @@ def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, contro
     ax2.legend()
 
     plt.show()
-
     

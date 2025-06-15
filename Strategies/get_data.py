@@ -8,24 +8,35 @@ from datetime import datetime
 import yfinance as yf
 
 def grab_Alpaca_data():
-    ticker = input("What is the ticker symbol? ")
-    ticker = ticker.upper()
-
-    user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
-
     api_key = os.getenv("ALPACA_API_KEY")
     secret_api_key = os.getenv("ALPACA_SECRET_KEY")
     client = StockHistoricalDataClient(api_key, secret_api_key)
+    ticker = input("What is the ticker symbol? ")
+    ticker = ticker.upper()
 
-
-    if user_time_preference == "1":
-        request_params = StockBarsRequest(
+    max_timeframe = StockBarsRequest(
         symbol_or_symbols=[ticker],
         timeframe=TimeFrame.Day,     
         start=datetime(1999, 1, 1),
         end=datetime.now(),
-                                        )
-    elif user_time_preference == "2":
+                        )
+    
+    bars = client.get_stock_bars(max_timeframe)
+
+    first_date = bars[ticker][0].timestamp
+    last_date = datetime.now()
+
+    user_time_preference = 0
+    while user_time_preference not in ["1", "2"]:
+            user_time_preference = input(f"""Select timeframe option:
+1 - Use full available data (max)
+2 - Use a custom date range
+
+Available data range: {first_date.year}-{first_date.month:02d}-{first_date.day:02d} to {last_date.year}-{last_date.month:02d}-{last_date.day:02d})
+Enter 1 or 2: """)
+
+    
+    if user_time_preference == "2":
      
         start_year = int(input("What start year should it test on? (year number) "))
         start_month = int(input("What start month should it test on? (month number) "))
@@ -43,11 +54,8 @@ def grab_Alpaca_data():
             end=datetime(end_year, end_month, end_day),
                                         )
 
-    else:
-        raise ValueError("Did not choose valid option. (1 or 2)")
-
 #get bars for the data
-    bars = client.get_stock_bars(request_params)
+        bars = client.get_stock_bars(request_params)
 
     data = bars.df
 
@@ -65,12 +73,32 @@ def grab_Alpaca_data():
     return data, ticker
 
 def grab_YFdata():
-     
-    ticker = input("What is the ticker symbol? ")
+    try:
+        ticker = input("What is the ticker symbol? ").upper()
+        max_timeframe = yf.download(ticker, period="max", auto_adjust=True)
+        
+        if max_timeframe.empty:
 
-    user_time_preference = input("Would you like to use the max timeframe or custom? (1 for max), (2 for custom) ")
+            raise ValueError(f"No data was found for {ticker}, try checking ticker symbol.")
+    except Exception as e:
+
+        print(f"Error fetching data: {e}")
+
+    first_date = max_timeframe.index[0]
+    last_date = max_timeframe.index[-1]
+    user_time_preference = 0
+    while user_time_preference not in ["1", "2"]:
+            user_time_preference = input(f"""Select timeframe option:
+1 - Use full available data (max)
+2 - Use a custom date range
+
+Available data range: {first_date.year}-{first_date.month:02d}-{first_date.day:02d} to {last_date.year}-{last_date.month:02d}-{last_date.day:02d})
+Enter 1 or 2: """)
+
+
+
     if user_time_preference == "1":
-        data = yf.download(ticker, period="max")
+        data = max_timeframe
         data.reset_index(inplace= True)
 
         if isinstance(data.columns, pd.MultiIndex):
@@ -102,22 +130,26 @@ def grab_YFdata():
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = data.columns.get_level_values(0)
 
-    else:
-        raise ValueError("Did not choose valid option. (1 or 2)")
     return data, ticker
 
 def choose_data():
-    user_data_choice = input("Would you like historical data from Alpaca or Yahoo Finance? (1 for Alpaca/ 2 for YF) ")
-    if user_data_choice == "1":
-        data, ticker = grab_Alpaca_data()
-    elif user_data_choice == "2":
-        data, ticker = grab_YFdata()
-    else:
-        raise ValueError(f"{user_data_choice} is not a option. (1 or 2) ")
+    user_data_choice = 0
+    while user_data_choice not in ["1", "2"]:
+        user_data_choice = input("""Would you like historical data from Alpaca or Yahoo Finance?
+    1 - Alpaca
+    2 - YahooFinance
+Please enter 1 or 2: """)
+        if user_data_choice == "1":
+            data, ticker = grab_Alpaca_data()
+        elif user_data_choice == "2":
+            data, ticker = grab_YFdata()
     
     if user_data_choice == "2":
-        data.rename(columns={"Close": "close", "Date": "date", "High": "high", "Low": "low"}, inplace=True)
-    else:
+        data.rename(columns={"Close": "close", "Date": "date", "High": "high", "Low": "low", "Volume": 'volume', "Open": 'open'}, inplace=True)
+    elif user_data_choice == "1":
         data['date'] = pd.to_datetime(data['timestamp']).dt.date
-    
+        data.drop(columns=['timestamp', 'vwap', 'trade_count', 'symbol'], inplace=True)
+        columns = ['date', 'close', 'high', 'low', 'open', 'volume']
+        data = data[columns]
+
     return data, ticker
