@@ -28,14 +28,12 @@ def update_stoploss(trade, price, last_atr, total_position, portfolio_value, con
                             stoploss = new_stop
                             trade[l, 10] = price
                             trade[l, 1] = stoploss
-            print(total_position)
             total_value = total_position * price + cash
             total_position = 0
             total_control_value = control_position * price
             portfolio_value.append(total_value)
             control_portfolio_value.append(total_control_value)
         elif np.all(trade[:, 6] == 0):
-            print(total_position)
             total_position = 0
             total_value = total_position * price + cash
             total_control_value = control_position * price
@@ -43,7 +41,6 @@ def update_stoploss(trade, price, last_atr, total_position, portfolio_value, con
             control_portfolio_value.append(total_control_value)
 
     else:
-        print(total_position)
         total_position = 0
         total_value = total_position * price + cash
         total_control_value = control_position * price
@@ -184,8 +181,6 @@ def complete_SMA_function():
     print("Starting test, please stand by...")
     time_start = time.time()
 
-    print(data.shape)
-   
    # Index(['date', 'close', 'high', 'low', 'open', 'volume', 'SMA_50', 'SMA_200', 'RSI', 'ATR'])
 #
 #indexing works like this:
