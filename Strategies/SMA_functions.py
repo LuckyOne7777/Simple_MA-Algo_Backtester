@@ -199,7 +199,7 @@ def complete_SMA_function():
 #   arr[i][9] -> 'ATR'         (row i, Average True Range)
 
     price_data = []
-    for i in range(200, len(data)):
+    for i in range (len(data)):
         date = data[i, 0]
         price = data[i, 1]
         last_SMA_50 = data[i, 6]
@@ -225,16 +225,12 @@ def complete_SMA_function():
             current_year += 1
             print(f"Year {current_year}: done! {math.ceil(num_of_years - current_year)} year(s) left.")
 
-        if not i - 199 == len(portfolio_value):
-            raise ValueError(f"number of days does not match number of portfolio updates. Number of days: {i - 199} Number of updates: {len(portfolio_value)}")
- 
-
     # After loop is over
     end_time = time.time()
 
     price_data = pd.DataFrame({
-            'Date': data[200:, 0],
-            'Price': data[200:, 1]
+            'Date': data[:, 0],
+            'Price': data[:, 1]
         })
     price_df = price_data
 
@@ -243,13 +239,13 @@ def complete_SMA_function():
     sell_points = trade[trade[:, 6] == 0]
     buy_points = pd.DataFrame({'X': trade[:, 3], 'Y': trade[:, 4]})
     portfolio_df = pd.DataFrame({
-        'Date': data[200:, 0],
+        'Date': data[:, 0],
         'Portfolio_Value': portfolio_value
     })
     portfolio_df.set_index('Date', inplace=True)
 
     control_portfolio_df = pd.DataFrame({
-        'Date': data[200:, 0],
+        'Date': data[:, 0],
         'Control_Portfolio_Value': control_portfolio_value
     })
     control_portfolio_df.set_index('Date', inplace=True)
@@ -265,5 +261,6 @@ def complete_SMA_function():
 
     print(f"Results saved successfully! Done with {ticker}")
     print(f"Program time: {round(end_time - time_start, 2)} secs")
+    print(len(data))
 
 complete_SMA_function()
