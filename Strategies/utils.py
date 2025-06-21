@@ -80,12 +80,16 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
                 summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
 
             line_break()
-            print(summary)
+            print(summary.iloc[:, :6])
+            line_break()
+            print(summary.iloc[:, 6:])
             line_break()
             print(f"Results saved successfully! Finshed with {ticker}")
         else:
             line_break()
-            print(summary)
+            print(summary.iloc[:, :6])
+            line_break()
+            print(summary.iloc[:, 6:])
             line_break()
             print(f"Backtest was a success! Finished with {ticker}")
         
