@@ -9,19 +9,30 @@ import os
 def line_break():
      print("==============================================================================================")
 
-def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value):
+def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value, trade):
      #calculate stats for CSV summary
         cagr = ((portfolio_value[-1] / starting_cap) ** (1 / num_of_years) - 1) * 100
         running_max = portfolio_df['Portfolio_Value'].cummax()
         drawdown = (portfolio_df['Portfolio_Value'] - running_max) / running_max
         max_drawdown = drawdown.min()
+        # TODO: include active trades in count
+        winning_trades = trade[trade[:, 7] == 1]
+        losing_trades = trade[trade[:, 7] == 0]
 
+        win_percent = len(winning_trades) / (len(losing_trades) + len(winning_trades))
+
+        winning_trade_start_val = winning_trades[:, 8]
+        winning_trade_end_val = winning_trades[:, 9]
+
+        average_capital_win = np.mean(winning_trade_end_val - winning_trade_start_val)
         #DF for summary to CSV file
         summary = pd.DataFrame([{
             'symbol': ticker,
             'end_val': f"${math.floor(portfolio_value[-1]):,.0f}",
             'winner': 'Strategy' if portfolio_value[-1] > control_portfolio_value[-1] else 'Benchmark',
             'trades': f"{round(trade_num / num_of_years, 1):,.1f}",
+            'win_%': f"{round(win_percent, 3):,.2%}",
+            'avg_win':f"${round(average_capital_win):,.2f}",
             'cagr': f"{round(cagr, 2)}%",
             'median': f"${round(float(np.median(portfolio_value))):,.0f}",
             'average': f"${round(float(np.mean(portfolio_value))):,.0f}",
@@ -35,6 +46,8 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
             'end_val',
             'winner',
             'trades',
+            'win_%',
+            'avg_win',
             'cagr',
             'median',
             'average',
@@ -69,10 +82,12 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
             line_break()
             print(summary)
             line_break()
+            print(f"Results saved successfully! Finshed with {ticker}")
         else:
             line_break()
             print(summary)
             line_break()
+            print(f"Backtest was a success! Finished with {ticker}")
         
 def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df):
             
@@ -103,3 +118,42 @@ def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, contro
 
     plt.show()
     
+def update_stoploss(trade, price, last_atr, total_position, portfolio_value, control_portfolio_value, cash, control_position):
+ #make a mask to filter through inactive trades and run loop over mask
+    total_position = 0
+    new_stop = price - (3 * last_atr)
+    #mask for still active trades
+    active_trade_mask = (trade[:, 6] == 1)
+
+    update_condition_mask = (
+         (trade[:, 6] == 1) & 
+         (trade[:, 10] * price >=  1.2 ) & 
+         (trade[:,1] < new_stop ))
+
+    if len(trade) > 0:
+        if np.any(trade[:, 6] == 1):
+            total_position = trade[active_trade_mask, 2].sum()
+            trade[active_trade_mask, 9] = (trade[active_trade_mask, 2] * price).astype(int)
+
+            #conditional for updating stoploss:
+
+            stoploss = new_stop
+            trade[update_condition_mask, 10] = price
+            trade[update_condition_mask, 1] = stoploss
+            total_value = total_position * price + cash
+            
+            total_control_value = control_position * price
+            portfolio_value.append(total_value)
+            control_portfolio_value.append(total_control_value)
+        elif np.all(trade[:, 6] == 0):
+            total_value = total_position * price + cash
+            total_control_value = control_position * price
+            portfolio_value.append(total_value)
+            control_portfolio_value.append(total_control_value)
+
+    else:
+        total_value = total_position * price + cash
+        total_control_value = control_position * price
+        portfolio_value.append(total_value)
+        control_portfolio_value.append(total_control_value)
+    return trade
