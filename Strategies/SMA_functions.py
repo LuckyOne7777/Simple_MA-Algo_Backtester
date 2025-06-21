@@ -11,7 +11,6 @@ from get_data import choose_data
 
 # Check trading conditions: buy signal logic only
 # Returns "buy" or "hold" based on indicator conditions
-
 def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade):
     if np.isnan(last_SMA_50) or np.isnan(last_SMA_200) or np.isnan(last_RSI):
         return "hold"
@@ -21,7 +20,6 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
 
 # Go through all open trades and check if current price hits stoploss
 # Returns list of indices of trades that should be closed
-
 def check_stoploss(trade, price):
     index_list = []
     if len(trade) > 0:
@@ -33,7 +31,6 @@ def check_stoploss(trade, price):
 
 # Execute sells for trades that hit stoploss
 # Updates trade matrix and cash
-
 def sell_execution(index_list, trade, price, date, cash):
     if len(index_list) > 0:
         for i in range(len(index_list)):
@@ -186,7 +183,7 @@ def complete_SMA_function():
     CSV_handling(
         portfolio_value, trade_num, num_of_years, ticker,
         starting_cap, portfolio_df, control_portfolio_value,
-        trade
+        trade, data, capital
     )
     plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df)
 

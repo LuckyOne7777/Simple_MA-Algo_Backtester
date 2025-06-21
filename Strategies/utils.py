@@ -9,7 +9,7 @@ import os
 def line_break():
      print("==============================================================================================")
 
-def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value, trade):
+def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value, trade, data, capital):
      #calculate stats for CSV summary
         cagr = ((portfolio_value[-1] / starting_cap) ** (1 / num_of_years) - 1) * 100
         running_max = portfolio_df['Portfolio_Value'].cummax()
@@ -28,6 +28,9 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
         #DF for summary to CSV file
         summary = pd.DataFrame([{
             'symbol': ticker,
+            'start': data[0, 0],
+            'end': data[-1, 0],
+            'start_val': f"${capital}",
             'end_val': f"${math.floor(portfolio_value[-1]):,.0f}",
             'winner': 'Strategy' if portfolio_value[-1] > control_portfolio_value[-1] else 'Benchmark',
             'trades': f"{round(trade_num / num_of_years, 1):,.1f}",
@@ -43,6 +46,9 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
 
         ALL_COLUMNS = [
             'symbol',
+            'start',
+            'end',
+            'start_val',
             'end_val',
             'winner',
             'trades',

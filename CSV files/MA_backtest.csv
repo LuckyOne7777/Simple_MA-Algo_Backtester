@@ -1,2 +1,2 @@
-symbol,end_val,winner,trades,win_%,avg_win,cagr,median,average,max_drawdown,running_max,version
-
+symbol,start,end,start_val,end_val,winner,trades,win_%,avg_win,cagr,median,average,max_drawdown,running_max,version
+RGTI,2021-04-22,2025-06-20,$10000,"$5,047",Benchmark,51.2,27.70%,$47.00,-12.78%,"$9,008","$7,771",-67.38%,"$11,227",V2
