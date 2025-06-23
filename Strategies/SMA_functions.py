@@ -30,19 +30,18 @@ def SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, p
 
 # Go through all open trades and check if current price hits stoploss
 # Returns list of indices of trades that should be closed
-def check_stoploss(trade, price):
-    index_list = []
-    if len(trade) > 0:
-        for l in range(len(trade)):
-            if trade[l, 6] == 1:  # Active trade
-                if price < trade[l, 1]:  # If price below stoploss
-                    index_list.append(l)
-    return index_list
 
 # Execute sells for trades that hit stoploss
 # Updates trade matrix and cash
-def sell_execution(index_list, trade, price, date, cash):
-    if len(index_list) > 0:
+def sell_execution(trade, price, date, cash):
+
+    if len(trade) > 0 and np.any(trade[:, 6] == 1):
+        sell_mask = (
+            (trade[:, 6] == 1) &
+            (trade[:, 1] > price)
+        )
+        index_list = np.where(sell_mask)[0]
+
         for i in range(len(index_list)):
             index = index_list[i]
             adjusted_price = price * 0.999  # Slippage assumption
@@ -58,7 +57,7 @@ def sell_execution(index_list, trade, price, date, cash):
                 trade[index, 7] = 0  # Loss
     return trade, cash
 
-# Execute buy signals and update trade log accordingly
+# Execute buexecutiony signals and update trade log accordingly
 
 def SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade, last_atr, date, position, trade_num, cash, buy_num, stoploss):
     result = SMAtrading_conditions(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price, trade)
@@ -91,7 +90,7 @@ def SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, pric
 
 # Main strategy runner
 # Handles indicator calculation, looping, trade execution, logging, and plotting
-
+#@profile #
 def complete_SMA_function():
     trade = np.empty((0, 12), dtype=object)
 
@@ -99,6 +98,7 @@ def complete_SMA_function():
     data = data.dropna()
 
     if len(data) < 200:
+
         raise ValueError(f"Backtest needs at least 200 days and dataframe only has {len(data)}, Try increasing or checking timeframe format.")
 
     # Calculate indicators
@@ -139,8 +139,7 @@ def complete_SMA_function():
 
         cash_per_trade = cash * 0.05
 
-        index_list = check_stoploss(trade, price)
-        trade, cash = sell_execution(index_list, trade, price, date, cash)
+        trade, cash = sell_execution(trade, price, date, cash)
 
         position, trade_num, cash, buy_num, stoploss, trade = SMAtrade_execution(
             last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, price,
