@@ -9,15 +9,7 @@ from utils import CSV_handling, plot_results, update_stoploss
 from indicators import calculate_rsi, calculate_atr
 from get_data import choose_data
 
-        # TODO: include active trades in count (utils, 21)
-        # TODO: let V1 have its own file (backtesting)
-        # TODO: improve check stoploss logic, currently a bottle neck (SMA_functions, 23)
-        # TODO: drop index when printing summary (utils)
-        # TODO: add avg loss (utils)
-        # TODO: fix future warning when saving to CSV (utils, 78)
-        # TODO: @jit bottlenecks
-        # TODO: add classes at some point
-        # TODO: add obscure stock symbols like "BRK.A"
+
 
 # Check trading conditions: buy signal logic only
 # Returns "buy" or "hold" based on indicator conditions
