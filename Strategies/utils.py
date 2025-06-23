@@ -15,16 +15,21 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
         running_max = portfolio_df['Portfolio_Value'].cummax()
         drawdown = (portfolio_df['Portfolio_Value'] - running_max) / running_max
         max_drawdown = drawdown.min()
-        # TODO: include active trades in count
+
         winning_trades = trade[trade[:, 7] == 1]
         losing_trades = trade[trade[:, 7] == 0]
 
-        win_percent = len(winning_trades) / (len(losing_trades) + len(winning_trades))
+        win_percent = len(winning_trades) / (len(losing_trades) + len(winning_trades) + 1e-10)
 
         winning_trade_start_val = winning_trades[:, 8]
         winning_trade_end_val = winning_trades[:, 9]
 
+        losing_trade_start_val = losing_trades[:, 8]
+        losing_trade_end_val = losing_trades[:, 9]
+
         average_capital_win = np.mean(winning_trade_end_val - winning_trade_start_val)
+
+        average_capital_loss = np.mean(losing_trade_end_val - losing_trade_start_val)
         #DF for summary to CSV file
         summary = pd.DataFrame([{
             'symbol': ticker,
@@ -36,6 +41,8 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
             'trades': f"{round(trade_num / num_of_years, 1):,.1f}",
             'win_%': f"{round(win_percent, 3):,.2%}",
             'avg_win':f"${round(average_capital_win):,.2f}",
+            'loss_%': f"{round(1 - win_percent, 3):,.2%}",
+            'avg_loss':f"${round(average_capital_loss):,.2f}",
             'cagr': f"{round(cagr, 2)}%",
             'median': f"${round(float(np.median(portfolio_value))):,.0f}",
             'average': f"${round(float(np.mean(portfolio_value))):,.0f}",
@@ -54,6 +61,8 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
             'trades',
             'win_%',
             'avg_win',
+            'loss_%',
+            'avg_loss',
             'cagr',
             'median',
             'average',
