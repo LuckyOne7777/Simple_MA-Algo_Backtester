@@ -198,7 +198,5 @@ def complete_SMA_function():
     plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df)
 
     print(f"Program time: {round(end_time - time_start, 2)} secs")
-    print(num_of_years)
-
 
 complete_SMA_function()
