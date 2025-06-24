@@ -163,13 +163,16 @@ def complete_SMA_function():
     price_df = price_data
     price_df.set_index('Date', inplace=True)
 
-    sell_points = trade[trade[:, 6] == 0]  # Trades that exited
-    buy_points = pd.DataFrame({'X': trade[:, 3], 'Y': trade[:, 4]})  # Buy signals
+    sell_mask = trade[trade[:, 6] == 0]  # Trades that exited
+    sell_points = pd.DataFrame({'X': sell_mask[:, 5], 'Y': sell_mask[:, 11]}) # Sell signals, mask needed
+    buy_points = pd.DataFrame({'X': trade[:, 3], 'Y': trade[:, 4]})  # Buy signals (no need for mask)
 
+    # create DataFrames for both portfolio and control plotting
     portfolio_df = pd.DataFrame({
         'Date': data[:, 0],
         'Portfolio_Value': portfolio_value
     })
+
     portfolio_df.set_index('Date', inplace=True)
 
     control_portfolio_df = pd.DataFrame({

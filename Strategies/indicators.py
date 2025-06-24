@@ -24,6 +24,7 @@ def calculate_atr(data, window):
     close = data['close']
     last_close = close.shift(1)
 
+    # make sure data has required columns
     required_cols = {'high', 'low', 'close'}
     if not required_cols.issubset(data.columns):
         raise ValueError(f"Missing one of the required columns: {required_cols}")
