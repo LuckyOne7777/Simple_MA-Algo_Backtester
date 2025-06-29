@@ -93,19 +93,13 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
                 df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
             else:
                 summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
-            line_break()
-            print(summary.iloc[:, :8])
-            line_break()
-            print(summary.iloc[:, 8:])
-            line_break()
-            print(f"Results saved successfully! Finshed with {ticker}")
-        else:
-            line_break()
-            print(summary.iloc[:, :8])
-            line_break()
-            print(summary.iloc[:, 8:])
-            line_break()
-            print(f"Backtest was a success! Finished with {ticker}")
+        line_break()
+        print(summary.iloc[:, :8])
+        line_break()
+        print(summary.iloc[:, 8:])
+        line_break()
+        print(f"Results saved successfully! Finshed with {ticker}")
+
         
 def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df):
             
