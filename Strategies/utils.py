@@ -38,17 +38,17 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
             'start_val': f"${(capital):,.0f}",
             'end_val': f"${math.floor(portfolio_value[-1]):,.0f}",
             'winner': 'Strategy' if portfolio_value[-1] > control_portfolio_value[-1] else 'Benchmark',
+            'version': "V2",
+            'cagr': f"{round(cagr, 2)}%",
             'trades': f"{round(trade_num, 1):,.1f}",
             'win_%': f"{round(win_percent, 3):,.2%}",
             'avg_win':f"${round(average_capital_win):,.2f}",
             'loss_%': f"{round(1 - win_percent, 3):,.2%}",
             'avg_loss':f"-${abs(round(average_capital_loss)):,.2f}",
-            'cagr': f"{round(cagr, 2)}%",
             'median': f"${round(float(np.median(portfolio_value))):,.0f}",
             'average': f"${round(float(np.mean(portfolio_value))):,.0f}",
             'max_drawdown': f"{round(max_drawdown * 100, 2)}%",
             'running_max': f"${running_max.iloc[-1]:,.0f}",
-            'version': "V2",
         }])
 
         ALL_COLUMNS = [
@@ -58,17 +58,17 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
             'start_val',
             'end_val',
             'winner',
+            'version',
+            'cagr',
             'trades',
             'win_%',
             'avg_win',
             'loss_%',
             'avg_loss',
-            'cagr',
             'median',
             'average',
             'max_drawdown',
             'running_max',
-            'version',
         ]
         
         user_CSV_preference = input("Would you like to save results to CSV? (y/n) ")
@@ -93,18 +93,17 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
                 df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
             else:
                 summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
-
             line_break()
-            print(summary.iloc[:, :6])
+            print(summary.iloc[:, :8])
             line_break()
-            print(summary.iloc[:, 6:])
+            print(summary.iloc[:, 8:])
             line_break()
             print(f"Results saved successfully! Finshed with {ticker}")
         else:
             line_break()
-            print(summary.iloc[:, :6])
+            print(summary.iloc[:, :8])
             line_break()
-            print(summary.iloc[:, 6:])
+            print(summary.iloc[:, 8:])
             line_break()
             print(f"Backtest was a success! Finished with {ticker}")
         

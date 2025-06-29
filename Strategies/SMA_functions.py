@@ -193,4 +193,4 @@ def complete_SMA_function():
 
     print(f"Program time: {round(end_time - time_start, 2)} secs")
 
-complete_SMA_function()
+
