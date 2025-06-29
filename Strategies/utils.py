@@ -93,10 +93,13 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
                 df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
             else:
                 summary.to_csv(file_path, index=False, columns=ALL_COLUMNS)
+
+        main_summary = summary.iloc[:, :8]
+        secondary_summary = summary.iloc[:, 8:]
         line_break()
-        print(summary.iloc[:, :8])
+        print(main_summary.to_string(index=False))
         line_break()
-        print(summary.iloc[:, 8:])
+        print(secondary_summary.to_string(index=False))
         line_break()
         print(f"Results saved successfully! Finshed with {ticker}")
 
