@@ -105,6 +105,8 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
 
         
 def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df):
+
+    plt.style.use('dark_background')
             
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
 
