@@ -86,7 +86,7 @@ def SMAtrade_execution(last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, pric
 def complete_SMA_function():
     trade = np.empty((0, 12), dtype=object)
 
-    data, ticker = choose_data()
+    data, ticker, user_data_choice = choose_data()
     data = data.dropna()
 
     if len(data) < 200:
@@ -187,7 +187,7 @@ def complete_SMA_function():
     CSV_handling(
         portfolio_value, trade_num, num_of_years, ticker,
         starting_cap, portfolio_df, control_portfolio_value,
-        trade, data, capital
+        trade, data, capital, user_data_choice
     )
     plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df)
 

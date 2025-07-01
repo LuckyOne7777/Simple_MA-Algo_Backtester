@@ -9,7 +9,7 @@ import os
 def line_break():
      print("==============================================================================================")
 
-def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value, trade, data, capital):
+def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value, trade, data, capital, user_data_choice):
      #calculate stats for CSV summary
         cagr = ((portfolio_value[-1] / starting_cap) ** (1 / num_of_years) - 1) * 100
         running_max = portfolio_df['Portfolio_Value'].cummax()
@@ -102,6 +102,8 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
         print(secondary_summary.to_string(index=False))
         line_break()
         print(f"Results saved successfully! Finshed with {ticker}")
+        if user_data_choice == "1":
+            print("Note: Alpaca data may not account for stock splits. This may lead to misleading results.")
 
         
 def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df):
@@ -114,7 +116,7 @@ def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, contro
     ax1.scatter(buy_points['X'], buy_points['Y'] - 1, color = 'blue', marker = '^', s =10, label = "Buy Signal")
     ax1.scatter(sell_points['X'], sell_points['Y'] + 1, color='red', marker = 'v', s=10, label = "Sell Signal")
 
-    ax1.plot(portfolio_df.index, price_df['Price'], color="green", alpha = 0.7)
+    ax1.plot(portfolio_df.index, price_df['Price'], color="white")
     ax1.set_ylabel('Price')
     ax1.set_title('Price Chart')
     ax1.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.2f}'))

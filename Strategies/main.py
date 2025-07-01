@@ -6,7 +6,6 @@ complete_SMA_function()
 
     # include active trades in count (utils, 21)
     # let V1 have its own file (backtesting)
-    # fix future warning when saving to CSV (utils, 78)
     # add classes at some point
     # add obscure stock symbols like "BRK.A"
 

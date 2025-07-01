@@ -152,4 +152,4 @@ Please enter 1 or 2: """)
         columns = ['date', 'close', 'high', 'low', 'open', 'volume']
         data = data[columns]
 
-    return data, ticker
+    return data, ticker, user_data_choice
