@@ -8,6 +8,8 @@ import os
 
 def line_break():
      print("==============================================================================================")
+def print_head():
+    print(" " + "=" * 37 + " BACKTEST RESULTS " + "=" * 37 + " ")
 
 def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value, trade, data, capital, user_data_choice):
      #calculate stats for CSV summary
@@ -96,6 +98,7 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
 
         main_summary = summary.iloc[:, :8]
         secondary_summary = summary.iloc[:, 8:]
+        print_head()
         line_break()
         print(main_summary.to_string(index=False))
         line_break()
