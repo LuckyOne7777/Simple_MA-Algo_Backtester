@@ -5,21 +5,35 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import math
 import os
-
 def line_break():
-     print("==============================================================================================")
+        print("==============================================================================================")
 def print_head():
-    print(" " + "=" * 37 + " BACKTEST RESULTS " + "=" * 37 + " ")
+        print(" " + "=" * 37 + " BACKTEST RESULTS " + "=" * 37 + " ")
+class Utils:
+    def __init__(self, portfolio_value, trade_num, num_of_years, ticker, starting_cap,
+             portfolio_df, control_portfolio_value, trade, data, capital, user_data_choice):
+        self.portfolio_value = portfolio_value
+        self.trade_num = trade_num
+        self.num_of_years = num_of_years
+        self.ticker = ticker
+        self.starting_cap = starting_cap
+        self.portfolio_df = portfolio_df
+        self.control_portfolio_value = control_portfolio_value
+        self.trade = trade
+        self.data = data
+        self.capital = capital
+        self.user_data_choice = user_data_choice
+#uhhhh
 
-def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap, portfolio_df, control_portfolio_value, trade, data, capital, user_data_choice):
+    def CSV_handling(self):
      #calculate stats for CSV summary
-        cagr = ((portfolio_value[-1] / starting_cap) ** (1 / num_of_years) - 1) * 100
-        running_max = portfolio_df['Portfolio_Value'].cummax()
-        drawdown = (portfolio_df['Portfolio_Value'] - running_max) / running_max
+        cagr = ((self.portfolio_value[-1] / self.starting_cap) ** (1 / self.num_of_years) - 1) * 100
+        running_max = self.portfolio_df['Portfolio_Value'].cummax()
+        drawdown = (self.portfolio_df['Portfolio_Value'] - running_max) / running_max
         max_drawdown = drawdown.min()
 
-        winning_trades = trade[trade[:, 7] == 1]
-        losing_trades = trade[trade[:, 7] == 0]
+        winning_trades = self.trade[self.trade[:, 7] == 1]
+        losing_trades = self.trade[self.trade[:, 7] == 0]
 
         win_percent = len(winning_trades) / (len(losing_trades) + len(winning_trades) + 1e-10)
 
@@ -34,21 +48,21 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
         average_capital_loss = np.mean(losing_trade_end_val - losing_trade_start_val)
         #DF for summary to CSV file
         summary = pd.DataFrame([{
-            'symbol': ticker,
-            'start': data[0, 0],
-            'end': data[-1, 0],
-            'start_val': f"${(capital):,.0f}",
-            'end_val': f"${math.floor(portfolio_value[-1]):,.0f}",
-            'winner': 'Strategy' if portfolio_value[-1] > control_portfolio_value[-1] else 'Benchmark',
+            'symbol': self.ticker,
+            'start': self.data[0, 0],
+            'end': self.data[-1, 0],
+            'start_val': f"${(self.capital):,.0f}",
+            'end_val': f"${math.floor(self.portfolio_value[-1]):,.0f}",
+            'winner': 'Strategy' if self.portfolio_value[-1] > self.control_portfolio_value[-1] else 'Benchmark',
             'version': "V2",
             'cagr': f"{round(cagr, 2)}%",
-            'trades': f"{round(trade_num, 1):,.1f}",
+            'trades': f"{round(self.trade_num, 1):,.1f}",
             'win_%': f"{round(win_percent, 3):,.2%}",
             'avg_win':f"${round(average_capital_win):,.2f}",
             'loss_%': f"{round(1 - win_percent, 3):,.2%}",
             'avg_loss':f"-${abs(round(average_capital_loss)):,.2f}",
-            'median': f"${round(float(np.median(portfolio_value))):,.0f}",
-            'average': f"${round(float(np.mean(portfolio_value))):,.0f}",
+            'median': f"${round(float(np.median(self.portfolio_value))):,.0f}",
+            'average': f"${round(float(np.mean(self.portfolio_value))):,.0f}",
             'max_drawdown': f"{round(max_drawdown * 100, 2)}%",
             'running_max': f"${running_max.iloc[-1]:,.0f}",
         }])
@@ -104,8 +118,8 @@ def CSV_handling(portfolio_value, trade_num, num_of_years, ticker, starting_cap,
         line_break()
         print(secondary_summary.to_string(index=False))
         line_break()
-        print(f"Results saved successfully! Finshed with {ticker}")
-        if user_data_choice == "1":
+        print(f"Results saved successfully! Finshed with {self.ticker}")
+        if self.user_data_choice == "1":
             print("Note: Alpaca data may not account for stock splits. This may lead to misleading results.")
 
         

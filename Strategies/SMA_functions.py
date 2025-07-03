@@ -5,7 +5,7 @@ import time
 from numba import jit 
 import math
 import line_profiler
-from utils import CSV_handling, plot_results, update_stoploss
+from utils import Utils, plot_results, update_stoploss
 from indicators import calculate_rsi, calculate_atr
 from get_data import choose_data
 
@@ -183,12 +183,13 @@ def complete_SMA_function():
 
     if len(portfolio_value) == 0 or len(control_portfolio_value) == 0:
         raise ValueError("Cannot save: Empty portfolio data.")
-
-    CSV_handling(
-        portfolio_value, trade_num, num_of_years, ticker,
+    
+    report = Utils(portfolio_value, trade_num, num_of_years, ticker,
         starting_cap, portfolio_df, control_portfolio_value,
-        trade, data, capital, user_data_choice
-    )
+        trade, data, capital, user_data_choice)
+
+    report.CSV_handling()
+
     plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df)
 
     print(f"Program time: {round(end_time - time_start, 2)} secs")
