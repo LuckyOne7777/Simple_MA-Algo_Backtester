@@ -5,13 +5,15 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import math
 import os
-def line_break():
-        print("==============================================================================================")
-def print_head():
-        print(" " + "=" * 37 + " BACKTEST RESULTS " + "=" * 37 + " ")
+
 class Utils:
+
     def __init__(self, portfolio_value, trade_num, num_of_years, ticker, starting_cap,
-             portfolio_df, control_portfolio_value, trade, data, capital, user_data_choice):
+             portfolio_df, control_portfolio_value, trade, data, capital, 
+             user_data_choice, buy_points, sell_points, price_df, 
+             control_portfolio_df, price, last_atr, total_position, 
+            cash, control_position):
+        
         self.portfolio_value = portfolio_value
         self.trade_num = trade_num
         self.num_of_years = num_of_years
@@ -23,7 +25,21 @@ class Utils:
         self.data = data
         self.capital = capital
         self.user_data_choice = user_data_choice
-#uhhhh
+        self.buy_points = buy_points
+        self.sell_points = sell_points
+        self.price_df = price_df
+        self.control_portfolio_df = control_portfolio_df
+        self.price = price
+        self.last_atr = last_atr
+        self.total_position = total_position
+        self.cash = cash
+        self.control_position = control_position
+    @staticmethod
+    def line_break():
+        print("==============================================================================================")
+    @staticmethod
+    def print_head():
+        print(" " + "=" * 37 + " BACKTEST RESULTS " + "=" * 37 + " ")
 
     def CSV_handling(self):
      #calculate stats for CSV summary
@@ -112,84 +128,80 @@ class Utils:
 
         main_summary = summary.iloc[:, :8]
         secondary_summary = summary.iloc[:, 8:]
-        print_head()
-        line_break()
+        Utils.print_head()
+        Utils.line_break()
         print(main_summary.to_string(index=False))
-        line_break()
+        Utils.line_break()
         print(secondary_summary.to_string(index=False))
-        line_break()
+        Utils.line_break()
         print(f"Results saved successfully! Finshed with {self.ticker}")
         if self.user_data_choice == "1":
             print("Note: Alpaca data may not account for stock splits. This may lead to misleading results.")
 
         
-def plot_results(ticker, buy_points, sell_points, price_df, portfolio_df, control_portfolio_df):
+    def plot_results(self):
 
-    plt.style.use('dark_background')
+        plt.style.use('dark_background')
             
-    fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex= True, figsize=(10, 6))
 
 # Plot on first subplot (ax1)
-    ax1.scatter(buy_points['X'], buy_points['Y'] - 1, color = 'blue', marker = '^', s =10, label = "Buy Signal")
-    ax1.scatter(sell_points['X'], sell_points['Y'] + 1, color='red', marker = 'v', s=10, label = "Sell Signal")
+        ax1.scatter(self.buy_points['X'], self.buy_points['Y'] - 1, color = 'blue', marker = '^', s =10, label = "Buy Signal")
+        ax1.scatter(self.sell_points['X'], self.sell_points['Y'] + 1, color='red', marker = 'v', s=10, label = "Sell Signal")
 
-    ax1.plot(portfolio_df.index, price_df['Price'], color="white")
-    ax1.set_ylabel('Price')
-    ax1.set_title('Price Chart')
-    ax1.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.2f}'))
-    ax1.grid(True)
-    ax1.legend()
+        ax1.plot(self.portfolio_df.index, self.price_df['Price'], color="white")
+        ax1.set_ylabel('Price')
+        ax1.set_title('Price Chart')
+        ax1.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.2f}'))
+        ax1.grid(True)
+        ax1.legend()
 
 
     # Plot on second subplot (ax2)
-    ax2.plot(portfolio_df.index, portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
-    ax2.plot(control_portfolio_df.index, control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", color ="orange")
-    ax2.set_ylabel('Portfolio Value')
-    ax2.set_xlabel('Date')
-    ax2.set_title(f'Backtest Results for {ticker}')
-    ax2.ticklabel_format(style='plain', axis='y')
-    ax2.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
-    ax2.grid(True)
-    ax2.legend()
+        ax2.plot(self.portfolio_df.index, self.portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
+        ax2.plot(self.control_portfolio_df.index, self.control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", color ="orange")
+        ax2.set_ylabel('Portfolio Value')
+        ax2.set_xlabel('Date')
+        ax2.set_title(f'Backtest Results for {self.ticker}')
+        ax2.ticklabel_format(style='plain', axis='y')
+        ax2.yaxis.set_major_formatter(mtick.StrMethodFormatter('${x:,.0f}'))
+        ax2.grid(True)
+        ax2.legend()
 
-    plt.show()
+        plt.show()
     
-def update_stoploss(trade, price, last_atr, total_position, portfolio_value, control_portfolio_value, cash, control_position):
- #make a mask to filter through inactive trades and run loop over mask
-    total_position = 0
-    new_stop = price - (3 * last_atr)
-    #mask for still active trades
-    active_trade_mask = (trade[:, 6] == 1)
+def update_stoploss(trade, price, last_atr, cash, control_position, portfolio_value, control_portfolio_value):
+        total_position = 0
+        new_stop = price - (3 * last_atr)
 
-    update_condition_mask = (
-         (trade[:, 6] == 1) & 
-         (trade[:, 10] * price >=  1.2 ) & 
-         (trade[:,1] < new_stop ))
+    # mask for active trades
+        active_trade_mask = (trade[:, 6] == 1)
 
-    if len(trade) > 0:
-        if np.any(trade[:, 6] == 1):
-            total_position = trade[active_trade_mask, 2].sum()
-            trade[active_trade_mask, 9] = (trade[active_trade_mask, 2] * price).astype(int)
+        update_condition_mask = (
+            (trade[:, 6] == 1) & 
+            (trade[:, 10] * price >= 1.2) & 
+            (trade[:, 1] < new_stop)
+                                )
 
-            #conditional for updating stoploss:
+        if len(trade) > 0:
+            if np.any(active_trade_mask):
+                total_position = trade[active_trade_mask, 2].sum()
+                trade[active_trade_mask, 9] = (trade[active_trade_mask, 2] * price).astype(int)
 
-            stoploss = new_stop
-            trade[update_condition_mask, 10] = price
-            trade[update_condition_mask, 1] = stoploss
-            total_value = total_position * price + cash
-            
-            total_control_value = control_position * price
-            portfolio_value.append(total_value)
-            control_portfolio_value.append(total_control_value)
-        elif np.all(trade[:, 6] == 0):
+            # update stoploss if condition is met
+                stoploss = new_stop
+                trade[update_condition_mask, 10] = price
+                trade[update_condition_mask, 1] = stoploss
+
             total_value = total_position * price + cash
             total_control_value = control_position * price
             portfolio_value.append(total_value)
             control_portfolio_value.append(total_control_value)
 
-    else:
-        total_value = total_position * price + cash
-        total_control_value = control_position * price
-        portfolio_value.append(total_value)
-        control_portfolio_value.append(total_control_value)
-    return trade
+        else:
+            total_value = total_position * price + cash
+            total_control_value = control_position * price
+            portfolio_value.append(total_value)
+            control_portfolio_value.append(total_control_value)
+
+        return trade
