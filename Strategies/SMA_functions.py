@@ -6,9 +6,10 @@ from numba import jit
 import math
 import line_profiler
 from utils import Utils, update_stoploss
-from indicators import calculate_rsi, calculate_atr
+from indicators import Indicators
 from get_data import Get_Historical_Data
 
+#generate the defination for simple python classes (may expand on this)
 def class_generator(*args, **kwargs):
     vars = args
     var_list = ", ".join(args)
@@ -18,14 +19,6 @@ def class_generator(*args, **kwargs):
     def __init__({var_list}):""")
     for varible in vars:
         print(f"        self.{varible} = {varible}")
-
-
-class_generator( 'last_SMA_50', 'last_SMA_200', 'last_RSI', 'cash_per_trade', 
-                 'price', 'trade', 'last_atr', 'date', 'position', 'trade_num', 'cash', 
-                 'buy_num', 'stoploss', name ="test")
-
-# Check trading conditions: buy signal logic only
-# Returns "buy" or "hold" based on indicator conditions
 
 class SMA_Functions:
 
@@ -47,6 +40,8 @@ class SMA_Functions:
         self.buy_num = buy_num
         self.stoploss = stoploss
         
+# Check trading conditions: buy signal logic only
+# Returns "buy" or "hold" based on indicator conditions
     def SMAtrading_conditions(self):
         if np.isnan(self.last_SMA_50) or np.isnan(self.last_SMA_200) or np.isnan(self.last_RSI):
             return "hold"
@@ -54,70 +49,62 @@ class SMA_Functions:
             return "buy"
         return "hold"
 
-# Go through all open trades and check if current price hits stoploss
-# Returns list of indices of trades that should be closed
-
-# Execute sells for trades that hit stoploss
-# Updates trade matrix and cash
     def sell_execution(self):
-
         if len(self.trade) > 0 and np.any(self.trade[:, 6] == 1):
             sell_mask = (
                 (self.trade[:, 6] == 1) &
                 (self.trade[:, 1] > self.price)
-                        )
-        index_list = np.where(sell_mask)[0]
+            )
+            index_list = np.where(sell_mask)[0]
 
-        for i in range(len(index_list)):
-            index = index_list[i]
-            adjusted_price = self.price * 0.999  # Slippage assumption
-            cash += self.trade[index, 2] * adjusted_price  # Sell value added to cash
+            for index in index_list:
+                adjusted_price = self.price * 0.999  # Slippage
+                self.cash += self.trade[index, 2] * adjusted_price
 
-            self.trade[index, 5] = self.date  # Exit date
-            self.trade[index, 11] = adjusted_price  # Exit price
-            self.trade[index, 6] = 0  # Mark trade inactive
-            # Determine if trade was profitable
-            if self.trade[index, 9] > self.trade[index, 8]:
-                self.trade[index, 7] = 1  # Win
-            else:
-                self.trade[index, 7] = 0  # Loss
+                self.trade[index, 5] = self.date
+                self.trade[index, 11] = adjusted_price
+                self.trade[index, 6] = 0  # Deactivate
+
+                # Win condition
+                if self.trade[index, 9] > self.trade[index, 8]:
+                    self.trade[index, 7] = 1
+                else:
+                    self.trade[index, 7] = 0
+
         return self.trade, self.cash
 
-# Execute buexecutiony signals and update trade log accordingly
-
-    def SMA_execution(self):
-        trade, cash = self.sell_execution
-        result = self.SMAtrading_conditions(self)
+    def trade_execution(self):
+        self.trade, self.cash = self.sell_execution()
+        result = self.SMAtrading_conditions()
 
         if result == "buy":
-            adjusted_price = self.price * 1.001  # Slippage assumption
-            position = math.floor(self.cash_per_trade / adjusted_price)
-            cash -= position * adjusted_price
-            trade_num += 1
-            buy_num += 1
-            # stoploss gives price 3x atr to move 
-            stoploss = round((adjusted_price - (self.last_atr * 3)), 2)
+            adjusted_price = self.price * 1.001  # Slippage
+            self.position = math.floor(self.cash_per_trade / adjusted_price)
+            self.cash -= self.position * adjusted_price
+            self.trade_num += 1
+            self.buy_num += 1
+            self.stoploss = round(adjusted_price - (self.last_atr * 3), 2)
 
-            # Create and add new trade row
             new_trade = np.zeros((1, 12), dtype=object)
-            new_trade[0, 1] = stoploss             # Stoploss
-            new_trade[0, 2] = position             # Shares
-            new_trade[0, 3] = self.date            # Buy date
-            new_trade[0, 4] = adjusted_price       # Price bought
-            new_trade[0, 5] = -999                 # Exit date
-            new_trade[0, 6] = 1                    # Active flag (true)
-            new_trade[0, 7] = -999                 # Win flag (unknown currently)
-            new_trade[0, 8] = position * adjusted_price  # Initial value
-            new_trade[0, 9] = position * adjusted_price  # Current value
-            new_trade[0, 10] = self.price               # Last update price
-            new_trade[0, 11] = -999                # Exit price (unknown currently)
+            new_trade[0, 1] = self.stoploss
+            new_trade[0, 2] = self.position
+            new_trade[0, 3] = self.date
+            new_trade[0, 4] = adjusted_price
+            new_trade[0, 5] = -999
+            new_trade[0, 6] = 1  # Active
+            new_trade[0, 7] = -999
+            new_trade[0, 8] = self.position * adjusted_price
+            new_trade[0, 9] = self.position * adjusted_price
+            new_trade[0, 10] = self.price
+            new_trade[0, 11] = -999
 
-            trade = np.vstack((trade, new_trade))
+            self.trade = np.vstack((self.trade, new_trade))
 
-        return position, trade_num, cash, buy_num, stoploss, trade
+        return self.position, self.trade_num, self.cash, self.buy_num, self.stoploss, self.trade
+
 
 # Main strategy runner
-# Handles indicator calculation, looping, trade execution, logging, and plotting
+# Handles the entire SMA backtest
 #@profile #
 def complete_SMA_function():
 
@@ -133,8 +120,11 @@ def complete_SMA_function():
     # Calculate indicators
     data['SMA_50'] = data['close'].rolling(window=50).mean()
     data['SMA_200'] = data['close'].rolling(window=200).mean()
-    data['RSI'] = calculate_rsi(data)
-    data['ATR'] = calculate_atr(data, 14)
+
+    indicators = Indicators(data)
+
+    data['RSI'] = indicators.calculate_rsi()
+    data['ATR'] = indicators.calculate_atr()
 
     data = data.values  # Convert to NumPy for speed
 
