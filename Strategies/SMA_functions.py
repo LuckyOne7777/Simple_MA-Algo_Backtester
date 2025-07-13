@@ -58,7 +58,7 @@ class SMA_Functions:
             index_list = np.where(sell_mask)[0]
 
             for index in index_list:
-                adjusted_price = self.price * 0.999  # Slippage
+                adjusted_price = self.price * 0.99  # Slippage
                 self.cash += self.trade[index, 2] * adjusted_price
 
                 self.trade[index, 5] = self.date
@@ -78,7 +78,7 @@ class SMA_Functions:
         result = self.SMAtrading_conditions()
 
         if result == "buy":
-            adjusted_price = self.price * 1.001  # Slippage
+            adjusted_price = self.price * 1.01  # Slippage
             self.position = math.floor(self.cash_per_trade / adjusted_price)
             self.cash -= self.position * adjusted_price
             self.trade_num += 1
