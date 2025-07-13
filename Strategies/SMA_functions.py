@@ -9,17 +9,6 @@ from utils import Utils, update_stoploss
 from indicators import Indicators
 from get_data import Get_Historical_Data
 
-#generate the defination for simple python classes (may expand on this)
-def class_generator(*args, **kwargs):
-    vars = args
-    var_list = ", ".join(args)
-    class_name = kwargs.get("name", "(class name)")
-    print(f"""class {class_name}:
-
-    def __init__({var_list}):""")
-    for varible in vars:
-        print(f"        self.{varible} = {varible}")
-
 class SMA_Functions:
 
     def __init__(self, last_SMA_50, last_SMA_200, last_RSI, cash_per_trade, 

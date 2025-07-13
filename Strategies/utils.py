@@ -6,6 +6,17 @@ import matplotlib.ticker as mtick
 import math
 import os
 
+#generate the defination for simple python classes (may expand on this)
+def class_generator(*args, **kwargs):
+    vars = args
+    var_list = ", ".join(args)
+    class_name = kwargs.get("name", "(class name)")
+    print(f"""class {class_name}:
+
+    def __init__({var_list}):""")
+    for varible in vars:
+        print(f"        self.{varible} = {varible}")
+
 class Utils:
 
     def __init__(self, portfolio_value, trade_num, num_of_years, ticker, starting_cap,
