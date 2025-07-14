@@ -26,55 +26,7 @@ sp500_tickers = sp500_table["Symbol"].tolist()
 
 
 #for comprehesive testing
-main_tickers = tickers = [
-# Broad Market Indexes
-"SPY", "VIX", "QQQ", "DIA", "IWM",
 
-
-# Sector ETFs
-"XLK", "XLF", "XLE", "XLV", "XLI",
-"XLY", "XLP", "XLU", "XLB", "XLRE",
-
-
-# Technology
-"AAPL", "MSFT", "NVDA", "ADBE", "CRM",
-
-
-# Financials
-"JPM", "BAC", "GS", "MS", "SCHW",
-
-
-# Energy
-"XOM", "CVX", "COP", "EOG", "PSX",
-
-
-# Healthcare
-"JNJ", "PFE", "UNH", "LLY", "MRK",
-
-
-# Industrials
-"BA", "CAT", "DE", "LMT", "UNP",
-
-
-# Consumer Discretionary
-"TSLA", "AMZN", "HD", "MCD", "NKE",
-
-
-# Consumer Staples
-"KO", "PEP", "WMT", "PG", "COST",
-
-
-# Utilities
-"NEE", "DUK", "SO", "AEP", "EXC",
-
-
-# Materials
-"LIN", "SHW", "NEM", "APD", "FCX",
-
-
-# Real Estate
-"PLD", "AMT", "CCI", "SPG", "EQIX"
-]
 #example ticker
 ticker = "HOOD"
 sp500 = "^GSPC"
@@ -192,11 +144,11 @@ try:
                 'running_max',
                 'version',
             ]
-        output_folder = "CSV files"
+        output_folder = "Archive"
         os.makedirs(output_folder, exist_ok=True)  # makes folder if it doesn't exist
 
 
-        file_path = os.path.join(output_folder, "MA_backtest.csv")
+        file_path = os.path.join(output_folder, "MA_backtestV1.csv")
 
 
         if os.path.exists(file_path):
