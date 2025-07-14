@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import math
 import os
+import warnings
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 #generate the defination for simple python classes (may expand on this)
 def class_generator(*args, **kwargs):
@@ -83,7 +86,7 @@ class Utils:
         average_capital_win = np.mean(winning_trade_end_val - winning_trade_start_val)
         if math.isnan(average_capital_win):
             average_capital_win = 0
-            
+
         average_capital_loss = np.mean(losing_trade_end_val - losing_trade_start_val)
         if math.isnan(average_capital_loss):
             average_capital_loss = 0
