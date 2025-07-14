@@ -68,7 +68,6 @@ class Utils:
                 self.trade[index, 7] = 1
             else:
                 self.trade[index, 7] = 0
-        print(len(active_trade_indexes))
 
         winning_trades = self.trade[self.trade[:, 7] == 1]
         losing_trades = self.trade[self.trade[:, 7] == 0]

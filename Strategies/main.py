@@ -4,7 +4,6 @@ complete_SMA_function()
 
 # === TODO ===:
 
-    # include active trades in count (utils, 21)
     # let V1 have its own file (backtesting)
     # add obscure stock symbols like "BRK.A"
 
