@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import math
 import os
 import matplotlib.ticker as mtick
+import warnings
+
+warnings.filterwarnings("ignore")
 #IMPORTANT! running will bring a future warning, but it shouldnt affect performance
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
