@@ -121,5 +121,8 @@ Please enter 1 or 2: """)
             data.drop(columns=['timestamp', 'vwap', 'trade_count', 'symbol'], inplace=True)
             columns = ['date', 'close', 'high', 'low', 'open', 'volume']
             data = data[columns]
+        data = data.dropna()
+        if len(data) < 200 or len(data) == 0:
+            raise ValueError("Not enough data for indicators.")
 
         return data, ticker, user_data_choice

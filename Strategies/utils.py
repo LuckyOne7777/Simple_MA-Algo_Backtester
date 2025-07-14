@@ -47,7 +47,7 @@ class Utils:
         self.control_position = control_position
     @staticmethod
     def line_break():
-        print("==============================================================================================")
+        print("=" * 94)
     @staticmethod
     def print_head():
         print(" " + "=" * 37 + " BACKTEST RESULTS " + "=" * 37 + " ")
@@ -58,10 +58,20 @@ class Utils:
         running_max = self.portfolio_df['Portfolio_Value'].cummax()
         drawdown = (self.portfolio_df['Portfolio_Value'] - running_max) / running_max
         max_drawdown = drawdown.min()
+        #include winning trades in the count
+        active_trade_indexes = np.where(self.trade[:, 6] == 1)[0]
+        for index in active_trade_indexes:
+            if self.trade[index, 9] > self.trade[index, 8]:
+                self.trade[index, 7] = 1
+            else:
+                self.trade[index, 7] = 0
+        print(len(active_trade_indexes))
 
         winning_trades = self.trade[self.trade[:, 7] == 1]
         losing_trades = self.trade[self.trade[:, 7] == 0]
-
+        print(winning_trades)
+        print(losing_trades)
+            
         win_percent = len(winning_trades) / (len(losing_trades) + len(winning_trades) + 1e-10)
 
         winning_trade_start_val = winning_trades[:, 8]
@@ -69,10 +79,14 @@ class Utils:
 
         losing_trade_start_val = losing_trades[:, 8]
         losing_trade_end_val = losing_trades[:, 9]
-
+        # add checks incase no trades were ever made
         average_capital_win = np.mean(winning_trade_end_val - winning_trade_start_val)
-
+        if math.isnan(average_capital_win):
+            average_capital_win = 0
+            
         average_capital_loss = np.mean(losing_trade_end_val - losing_trade_start_val)
+        if math.isnan(average_capital_loss):
+            average_capital_loss = 0
         #DF for summary to CSV file
         summary = pd.DataFrame([{
             'symbol': self.ticker,
@@ -169,8 +183,8 @@ class Utils:
 
 
     # Plot on second subplot (ax2)
-        ax2.plot(self.portfolio_df.index, self.portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value")
-        ax2.plot(self.control_portfolio_df.index, self.control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", color ="orange")
+        ax2.plot(self.portfolio_df.index, self.portfolio_df['Portfolio_Value'], label="Strategy Portfolio Value", color="orange")
+        ax2.plot(self.control_portfolio_df.index, self.control_portfolio_df['Control_Portfolio_Value'], label=f"Benchmark", color ="green")
         ax2.set_ylabel('Portfolio Value')
         ax2.set_xlabel('Date')
         ax2.set_title(f'Backtest Results for {self.ticker}')
