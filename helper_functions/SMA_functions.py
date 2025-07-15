@@ -5,9 +5,9 @@ import time
 from numba import jit 
 import math
 import line_profiler
-from utils import Utils, update_stoploss
-from indicators import Indicators
-from get_data import Get_Historical_Data
+from helper_functions.utils import Utils, update_stoploss
+from helper_functions.indicators import Indicators
+from helper_functions.get_data import Get_Historical_Data
 
 class SMA_Functions:
 

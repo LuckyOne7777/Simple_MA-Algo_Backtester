@@ -1,0 +1,14 @@
+README.md
+setup.py
+helper_functions/SMA_functions.py
+helper_functions/__init__.py
+helper_functions/get_data.py
+helper_functions/indicators.py
+helper_functions/utils.py
+simple_algo_backtester.egg-info/PKG-INFO
+simple_algo_backtester.egg-info/SOURCES.txt
+simple_algo_backtester.egg-info/dependency_links.txt
+simple_algo_backtester.egg-info/requires.txt
+simple_algo_backtester.egg-info/top_level.txt
+strategies/SMA_main.py
+strategies/__init__.py
