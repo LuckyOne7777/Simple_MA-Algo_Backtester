@@ -1,10 +1,9 @@
-from SMA_functions import complete_SMA_function
+from helper_functions.SMA_functions import complete_SMA_function
 
 complete_SMA_function()
 
 # === TODO ===:
 
-    # let V1 have its own file (backtesting)
     # add obscure stock symbols like "BRK.A"
 
 # === function index ====

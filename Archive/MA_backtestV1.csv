@@ -1,3 +1,4 @@
 symbol,end_val,winner,trades,cagr,median,average,max_drawdown,running_max,version
 VIX,"$11,690",Strategy,146.3,7.52%,"$9,191","$9,253",-33.17%,"$14,691",V1
 QQQ,"$65,239",Benchmark,97.6,10.88%,"$10,241","$17,464",-69.61%,"$65,333",V1
+DIA,"$44,010",Benchmark,90.5,8.14%,"$17,408","$23,318",-43.64%,"$55,614",V1
