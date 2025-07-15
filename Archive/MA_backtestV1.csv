@@ -1,3 +1,3 @@
 symbol,end_val,winner,trades,cagr,median,average,max_drawdown,running_max,version
-HOOD,"$75,054",Benchmark,141.5,173.96%,"$9,827","$15,993",-48.23%,"$75,329",V1
-HOOD,"$75,054",Benchmark,141.5,173.96%,"$9,827","$15,993",-48.23%,"$75,329",V1
+VIX,"$11,690",Strategy,146.3,7.52%,"$9,191","$9,253",-33.17%,"$14,691",V1
+QQQ,"$65,239",Benchmark,97.6,10.88%,"$10,241","$17,464",-69.61%,"$65,333",V1

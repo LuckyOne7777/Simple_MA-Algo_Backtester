@@ -8,7 +8,7 @@ import matplotlib.ticker as mtick
 import warnings
 
 warnings.filterwarnings("ignore")
-#IMPORTANT! running will bring a future warning, but it shouldnt affect performance
+
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
     gain = np.where(delta > 0, delta, 0)
@@ -170,22 +170,6 @@ try:
 
     # Save it back
         df_updated.to_csv(file_path, index=False, columns=ALL_COLUMNS)
-
-
-
-
-
-
-
-
-        summary.to_csv(
-                file_path,
-                mode='a' if os.path.exists(file_path) else 'w',
-                header=not os.path.exists(file_path),
-                index=False,
-                columns=ALL_COLUMNS,
-            )
-        print("Results saved successfully!")
 
 
             #plot results

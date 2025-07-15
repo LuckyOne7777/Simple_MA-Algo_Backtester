@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import os
+import warnings
+
+warnings.filterwarnings("ignore")
 
 main_tickers = [
 # Broad Market Indexes
@@ -179,13 +182,23 @@ for j in range(1, len(main_tickers)):
                     'version',
                 ]
 
-                summary.to_csv(
-                    "MA_backtestV2.csv",
-                    mode='a' if os.path.exists("MA_backtestV2.csv") else 'w',
-                    header=not os.path.exists("MA_backtestV2.csv"),
-                    index=False,
-                    columns=ALL_COLUMNS
-                )
+                output_folder = "Archive"
+                os.makedirs(output_folder, exist_ok=True)  # makes folder if it doesn't exist
+
+
+                file_path = os.path.join(output_folder, "MA_backtestV1.csv")
+
+
+                if os.path.exists(file_path):
+                        df_existing = pd.read_csv(file_path)
+                # Ensure all rows have the "version" column set to V2
+                        df_existing["version"] = "V1"
+
+                df_existing = pd.read_csv(file_path)
+    # Append new summary
+                df_updated = pd.concat([df_existing, summary], ignore_index=True)
+                df_updated.to_csv(file_path, index=False)
+
                 print(f"Results saved successfully! done with {ticker} loop num:{x}")
                 del control_portfolio_df
                 del portfolio_df
