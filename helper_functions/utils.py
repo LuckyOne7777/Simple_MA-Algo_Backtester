@@ -22,14 +22,13 @@ def class_generator(*args, **kwargs):
 
 class Utils:
 
-    def __init__(self, portfolio_value, trade_num, num_of_years, ticker, starting_cap,
+    def __init__(self, portfolio_value, num_of_years, ticker, starting_cap,
              portfolio_df, control_portfolio_value, trade, data, capital, 
              user_data_choice, buy_points, sell_points, price_df, 
              control_portfolio_df, price, last_atr, total_position, 
             cash, control_position):
         
         self.portfolio_value = portfolio_value
-        self.trade_num = trade_num
         self.num_of_years = num_of_years
         self.ticker = ticker
         self.starting_cap = starting_cap
@@ -71,8 +70,6 @@ class Utils:
 
         winning_trades = self.trade[self.trade[:, 7] == 1]
         losing_trades = self.trade[self.trade[:, 7] == 0]
-        print(winning_trades)
-        print(losing_trades)
             
         win_percent = len(winning_trades) / (len(losing_trades) + len(winning_trades) + 1e-10)
 
@@ -99,7 +96,7 @@ class Utils:
             'winner': 'Strategy' if self.portfolio_value[-1] > self.control_portfolio_value[-1] else 'Benchmark',
             'version': "V2",
             'cagr': f"{round(cagr, 2)}%",
-            'trades': f"{round(self.trade_num, 1):,.1f}",
+            'trades': f"{round(len(self.trade), 1):,.1f}",
             'win_%': f"{round(win_percent, 3):,.2%}",
             'avg_win':f"${round(average_capital_win):,.2f}",
             'loss_%': f"{round(1 - win_percent, 3):,.2%}",
@@ -197,38 +194,3 @@ class Utils:
 
         plt.show()
     
-def update_stoploss(trade, price, last_atr, cash, control_position, portfolio_value, control_portfolio_value):
-        total_position = 0
-        new_stop = price - (3 * last_atr)
-
-    # mask for active trades
-        active_trade_mask = (trade[:, 6] == 1)
-
-        update_condition_mask = (
-            (trade[:, 6] == 1) & 
-            (trade[:, 10] * price >= 1.2) & 
-            (trade[:, 1] < new_stop)
-                                )
-
-        if len(trade) > 0:
-            if np.any(active_trade_mask):
-                total_position = trade[active_trade_mask, 2].sum()
-                trade[active_trade_mask, 9] = (trade[active_trade_mask, 2] * price).astype(int)
-
-            # update stoploss if condition is met
-                stoploss = new_stop
-                trade[update_condition_mask, 10] = price
-                trade[update_condition_mask, 1] = stoploss
-
-            total_value = total_position * price + cash
-            total_control_value = control_position * price
-            portfolio_value.append(total_value)
-            control_portfolio_value.append(total_control_value)
-
-        else:
-            total_value = total_position * price + cash
-            total_control_value = control_position * price
-            portfolio_value.append(total_value)
-            control_portfolio_value.append(total_control_value)
-
-        return trade
