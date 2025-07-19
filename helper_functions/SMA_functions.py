@@ -5,7 +5,7 @@ import time
 from numba import jit 
 import math
 import line_profiler
-from helper_functions.utils import Utils, update_stoploss
+from helper_functions.utils import Utils
 from helper_functions.indicators import Indicators
 from helper_functions.get_data import Get_Historical_Data
 
@@ -160,13 +160,8 @@ def complete_SMA_function():
         last_SMA_200 = data[i, 7] # 200 SMA col
         last_RSI = data[i, 8] # RSI col
         last_atr = data[i, 9] # ATR col
-        active_trade_mask = trade[trade[:, 6] == 1]
-        trading_val = active_trade_mask[:, 9].sum() 
-        if i % 50 == 0 or i == len(data) - 1:
-        
-            print(f"{i}/{len(data)}: {date}, price: {price:.2f}, cash: {cash:,.2f}, money in trades: {trading_val}")
 
-
+        # main buying and selling logic 
         SMA.trade_execution(price, last_SMA_50, last_SMA_200, last_RSI, last_atr, date)
 
 
