@@ -50,7 +50,8 @@ class SMA_Functions:
 
     def trade_execution(self, price, last_SMA_50, last_SMA_200, last_RSI, last_atr, date):
         cash_per_trade = self.cash * 0.05
-        self.sell_execution(price, date)
+
+        self.sell_execution(price, date) # sell trades before buying
         buying_evaluation = self.SMAbuying_conditions(price, last_SMA_50, last_SMA_200, last_RSI)
         adjusted_price = price * 1.01 # slippage
         position = math.floor(cash_per_trade / adjusted_price + 1e-14)
@@ -83,7 +84,7 @@ class SMA_Functions:
 
         update_condition_mask = (
             (self.trade[:, 6] == 1) &
-            # is price at least 20% more compared to last updated price (column 10)? 
+            # is price at least 20% more compared to last updated price? (column 10) 
             (price >= self.trade[:, 10] * 1.2) & 
             (self.trade[:, 1] < new_stop)
                                 )

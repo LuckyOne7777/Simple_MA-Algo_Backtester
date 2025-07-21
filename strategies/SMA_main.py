@@ -23,7 +23,6 @@ complete_SMA_function()
         # CSV_handling()
         # line_break()
         # plot_results()
-        # update_stoploss()
 
     # SMA_functions.py
 
@@ -31,5 +30,6 @@ complete_SMA_function()
         # sell_execution()
         # SMA_trading_conditions()
         # SMAtrade_execution()
+        # update_stoploss()
 
  
