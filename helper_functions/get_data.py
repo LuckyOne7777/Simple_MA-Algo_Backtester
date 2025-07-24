@@ -59,7 +59,7 @@ Enter 1 or 2: """)
             data.columns = data.columns.get_level_values(0)
 
         if data.empty or len(data) < 200:
-            print(f"No sufficient data for {ticker}")
+            raise KeyError(f"No sufficient data for {ticker}")
 
         return data, ticker
 
@@ -67,18 +67,36 @@ Enter 1 or 2: """)
     def grab_YFdata():
         try:
             ticker = input("What is the ticker symbol? ").upper()
-            max_timeframe = yf.download(ticker, period="max", auto_adjust=True)
+            root = os.path.expanduser("~/Simple Algorithm Backtester")
+            folder = os.path.join(root, "data")
+            file = f"{ticker} YF Data.csv"
+            print(file)
+            file_path = os.path.join(folder, file) # broken
+            file_path = f"/Users/natha/Simple Algorithm Backtester/data/{file}"
+            print(file_path)
+            if os.path.exists(file_path):
+                print(f"Grabbing existing data from {file}")
+                max_timeframe = pd.read_csv(file_path)
+                print(max_timeframe)
+                max_timeframe["Date"] = pd.to_datetime(max_timeframe["Date"])
+                max_timeframe = max_timeframe.set_index("Date") # not setting index as date also fix hardcoding
+            else:
+                print("No existing file found. Downloading data...")
+                try:
+                    max_timeframe = yf.download(ticker, period="max", auto_adjust=True)
+                except Exception as e:
+                    raise ConnectionError(f"connection error likely. Error: {e}")
+                max_timeframe.to_csv(file_path)
 
             if max_timeframe.empty:
                 raise ValueError(f"No data was found for {ticker}, try checking ticker symbol.")
 
         except Exception as e:
-            print(f"Error fetching data: {e}")
-            return pd.DataFrame(), ticker
+            raise KeyError(f"Error fetching data: {e}")
 
         first_date = max_timeframe.index[0]
         last_date = max_timeframe.index[-1]
-
+        print(f"close type: {max_timeframe["Close"].dtypes}")
         user_time_preference = 0
         while user_time_preference not in ["1", "2"]:
             user_time_preference = input(f"""Select timeframe option:
@@ -93,11 +111,8 @@ Enter 1 or 2: """)
         else:
             start_date = f"{input('Start year (YYYY): ')}-{input('Start month (MM): ')}-{input('Start day (DD): ')}"
             end_date = f"{input('End year (YYYY): ')}-{input('End month (MM): ')}-{input('End day (DD): ')}"
-            data = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True).reset_index()
-
-        if isinstance(data.columns, pd.MultiIndex):
-            data.columns = data.columns.get_level_values(0)
-
+            data = max_timeframe[(max_timeframe.index >= start_date) & (max_timeframe.index <= end_date)].reset_index()
+            
         return data, ticker
 
     @staticmethod
@@ -123,6 +138,6 @@ Please enter 1 or 2: """)
             data = data[columns]
         data = data.dropna()
         if len(data) < 200 or len(data) == 0:
-            raise ValueError("Not enough data for indicators.")
+            raise ValueError(f"Not enough data for indicators. Data only has {len(data)}.")
 
         return data, ticker, user_data_choice

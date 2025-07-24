@@ -156,7 +156,7 @@ try:
 
         if os.path.exists(file_path):
                 df_existing = pd.read_csv(file_path)
-                # Ensure all rows have the "version" column set to V2
+                # Ensure all rows have the "version" column set to V1
                 df_existing["version"] = "V1"
 
         df_existing = pd.read_csv(file_path)
