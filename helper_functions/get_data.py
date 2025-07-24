@@ -69,14 +69,14 @@ Enter 1 or 2: """)
             ticker = input("What is the ticker symbol? ").upper()
             root = os.path.expanduser("~/Simple Algorithm Backtester")
             folder = os.path.join(root, "data")
-            file = f"{ticker} YF Data.csv"
+            file = f"{ticker} YF Data.parquet"
             print(file)
             file_path = os.path.join(folder, file) # broken
             file_path = f"/Users/natha/Simple Algorithm Backtester/data/{file}"
             print(file_path)
             if os.path.exists(file_path):
                 print(f"Grabbing existing data from {file}")
-                max_timeframe = pd.read_csv(file_path)
+                max_timeframe = pd.read_parquet(file_path)
                 print(max_timeframe)
                 max_timeframe["Date"] = pd.to_datetime(max_timeframe["Date"])
                 max_timeframe = max_timeframe.set_index("Date") # not setting index as date also fix hardcoding
@@ -86,7 +86,7 @@ Enter 1 or 2: """)
                     max_timeframe = yf.download(ticker, period="max", auto_adjust=True)
                 except Exception as e:
                     raise ConnectionError(f"connection error likely. Error: {e}")
-                max_timeframe.to_csv(file_path)
+                max_timeframe.to_parquet(file_path)
 
             if max_timeframe.empty:
                 raise ValueError(f"No data was found for {ticker}, try checking ticker symbol.")
@@ -112,7 +112,7 @@ Enter 1 or 2: """)
             start_date = f"{input('Start year (YYYY): ')}-{input('Start month (MM): ')}-{input('Start day (DD): ')}"
             end_date = f"{input('End year (YYYY): ')}-{input('End month (MM): ')}-{input('End day (DD): ')}"
             data = max_timeframe[(max_timeframe.index >= start_date) & (max_timeframe.index <= end_date)].reset_index()
-            
+
         return data, ticker
 
     @staticmethod
