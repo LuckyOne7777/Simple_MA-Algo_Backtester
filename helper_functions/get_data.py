@@ -78,7 +78,6 @@ Enter 1 or 2: """)
                 print(f"Grabbing existing data from {file}")
                 max_timeframe = pd.read_parquet(file_path)
                 print(max_timeframe)
-                max_timeframe["Date"] = pd.to_datetime(max_timeframe["Date"])
                 max_timeframe = max_timeframe.set_index("Date") # not setting index as date also fix hardcoding
             else:
                 print("No existing file found. Downloading data...")
