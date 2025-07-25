@@ -18,17 +18,14 @@ class Get_Historical_Data:
         root = os.path.expanduser("~/Simple Algorithm Backtester")
         folder = os.path.join(root, "data")
         file = f"{ticker} Alpaca Data.parquet"
-        print(file)
         file_path = os.path.join(folder, file) # broken
         file_path = f"/Users/natha/Simple Algorithm Backtester/data/{file}"
-        print(file_path)
         if os.path.exists(file_path):
             print(f"Grabbing existing data from {file}")
             max_timeframe = pd.read_parquet(file_path)
             if max_timeframe.index.name != "timestamp":
                 if "timestamp" in max_timeframe.columns:
                     max_timeframe.set_index("timestamp", inplace=True)
-            print(max_timeframe)
         else:
             print("No existing file found. Downloading data...")
             try:
@@ -95,15 +92,13 @@ Enter 1 or 2: """)
             root = os.path.expanduser("~/Simple Algorithm Backtester")
             folder = os.path.join(root, "data")
             file = f"{ticker} YF Data.parquet"
-            print(file)
             file_path = os.path.join(folder, file) # broken
             file_path = f"/Users/natha/Simple Algorithm Backtester/data/{file}"
-            print(file_path)
             if os.path.exists(file_path):
                 print(f"Grabbing existing data from {file}")
                 max_timeframe = pd.read_parquet(file_path)
-                print(max_timeframe)
-                max_timeframe = max_timeframe.set_index("Date") # not setting index as date also fix hardcoding
+                if max_timeframe.index.name != "Date":
+                    max_timeframe = max_timeframe.set_index("Date") # not setting index as date also fix hardcoding
             else:
                 print("No existing file found. Downloading data...")
                 try:
@@ -122,7 +117,6 @@ Enter 1 or 2: """)
 
         first_date = max_timeframe.index[0]
         last_date = max_timeframe.index[-1]
-        print(f"close type: {max_timeframe["Close"].dtypes}")
         user_time_preference = 0
         while user_time_preference not in ["1", "2"]:
             user_time_preference = input(f"""Select timeframe option:
