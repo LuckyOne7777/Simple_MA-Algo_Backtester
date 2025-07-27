@@ -19,13 +19,13 @@ class Get_Historical_Data:
         folder = os.path.join(root, "data")
         file = f"{ticker} Alpaca Data.parquet"
         file_path = os.path.join(folder, file) # broken
-        file_path = f"/Users/natha/Simple Algorithm Backtester/data/{file}"
+        print(file_path)
         if os.path.exists(file_path):
             print(f"Grabbing existing data from {file}")
-            max_timeframe = pd.read_parquet(file_path)
-            if max_timeframe.index.name != "timestamp":
-                if "timestamp" in max_timeframe.columns:
-                    max_timeframe.set_index("timestamp", inplace=True)
+            max_timeframe_data = pd.read_parquet(file_path)
+            if max_timeframe_data.index.name != "timestamp":
+                if "timestamp" in max_timeframe_data.columns:
+                    max_timeframe_data.set_index("timestamp", inplace=True)
         else:
             print("No existing file found. Downloading data...")
             try:
@@ -35,24 +35,26 @@ class Get_Historical_Data:
                     start=datetime(1999, 1, 1),
                     end=datetime.now(),
                     )
-                max_timeframe = client.get_stock_bars(max_timeframe).df
-                if max_timeframe.index.name != "timestamp":
-                    if "timestamp" in max_timeframe.columns:
-                        max_timeframe.set_index("timestamp", inplace=True)
-                print(max_timeframe)
-                if max_timeframe.empty or len(max_timeframe) < 200:
-                    raise KeyError("Downloaded data was empty.")
-                if isinstance(max_timeframe.columns, pd.MultiIndex):
-                        max_timeframe.columns = max_timeframe.columns.get_level_values(0)
-                if isinstance(max_timeframe.index, pd.MultiIndex):
-                    max_timeframe.reset_index(inplace=True)
-                    max_timeframe.set_index("timestamp", inplace=True)
+                max_timeframe_data = client.get_stock_bars(max_timeframe).df
+                # set index to timestamp if it isnt already
+                if max_timeframe_data.index.name != "timestamp":
+                    if "timestamp" in max_timeframe_data.columns:
+                        max_timeframe_data.set_index("timestamp", inplace=True)
 
-                max_timeframe.to_parquet(file_path)
+                if max_timeframe_data.empty or len(max_timeframe_data) < 200:
+                    raise KeyError("Downloaded data was empty.")
+                # 
+                if isinstance(max_timeframe_data.columns, pd.MultiIndex):
+                        max_timeframe_data.columns = max_timeframe_data.columns.get_level_values(0)
+                if isinstance(max_timeframe_data.index, pd.MultiIndex):
+                    max_timeframe_data.reset_index(inplace=True)
+                    max_timeframe_data.set_index("timestamp", inplace=True)
+
+                max_timeframe_data.to_parquet(file_path)
             except Exception as e:
                     raise ConnectionError(f"connection error likely. Error: {e}")
-        first_date = max_timeframe.index[0]
-        last_date = max_timeframe.index[-1]   
+        first_date = max_timeframe_data.index[0]
+        last_date = max_timeframe_data.index[-1]   
 
         user_time_preference = 0
         while user_time_preference not in ["1", "2"]:
@@ -62,7 +64,6 @@ class Get_Historical_Data:
 
 Available data range: {first_date.year}-{first_date.month:02d}-{first_date.day:02d} to {last_date.year}-{last_date.month:02d}-{last_date.day:02d})
 Enter 1 or 2: """)
-
         if user_time_preference == "2":
             start_year = int(input("What start year should it test on? (year number) "))
             start_month = int(input("What start month should it test on? (month number) "))
@@ -73,17 +74,17 @@ Enter 1 or 2: """)
 
             start_date = f"{start_year}-{start_month}-{start_day}"
             end_date = f"{end_year}-{end_month}-{end_day}"
-        # fix all this
-            data = max_timeframe[(max_timeframe.index >= start_date) & (max_timeframe.index <= end_date)].reset_index()
+            # data = start_date < existing data < end_date
+            valid_data = max_timeframe_data[(max_timeframe_data.index >= start_date) & (max_timeframe_data.index <= end_date)].reset_index()
         else:
-            data = max_timeframe
+            valid_data = max_timeframe_data
 
-        data = data.reset_index()
+        valid_data = valid_data.reset_index()
 
-        if data.empty or len(data) < 200:
+        if valid_data.empty or len(valid_data) < 200:
             raise KeyError(f"No sufficient data for {ticker}")
 
-        return data, ticker
+        return valid_data, ticker
 
     @staticmethod
     def grab_YFdata():
@@ -97,6 +98,7 @@ Enter 1 or 2: """)
             if os.path.exists(file_path):
                 print(f"Grabbing existing data from {file}")
                 max_timeframe = pd.read_parquet(file_path)
+                print(max_timeframe)
                 if max_timeframe.index.name != "Date":
                     max_timeframe = max_timeframe.set_index("Date") # not setting index as date also fix hardcoding
             else:
