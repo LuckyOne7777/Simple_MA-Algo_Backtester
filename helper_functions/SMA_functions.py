@@ -14,14 +14,14 @@ class SMA_Functions:
     def __init__(self, params):
         
         self.trade = np.empty((0, 12), dtype=object)
-        self.cash = params['capital']
-        self.fastSMA = params['fastSMA']
-        self.slowSMA = params['slowSMA']  
-        self.rsi_limit = params['rsi_limit']  
-        self.pos_sizing = params['pos_sizing']      
-        self.atr_range = params['atr_range']
+        self.cash = params.get('capital', 10_000)
+        self.fastSMA = params.get('fastSMA', 50)
+        self.slowSMA = params.get('slowSMA', 200)
+        self.rsi_limit = params.get('rsi_limit', 60) 
+        self.pos_sizing = params.get('pos_sizing', 0.05)      
+        self.atr_range = params.get('atr_range', 3)
         self.ticker = params['ticker']
-        self.data_type = params['data_type']
+        self.data_type = params.get('data_type', 'YF')
 # Check trading conditions: buy signal logic only
 # Returns "buy" or "hold" based on indicator conditions
     def SMAbuying_conditions(self, price, last_RSI, last_sma_fast, last_sma_slow):
@@ -122,6 +122,7 @@ class SMA_Functions:
 # Handles the entire SMA backtest
 #@profile #
     def run_backtest(self):
+        parameter_check(params)
         data = Get_Historical_Data.choose_data(self.ticker, self.data_type)
 
         print(data)
@@ -157,6 +158,7 @@ class SMA_Functions:
             last_sma_slow = data[i, 7]
             last_RSI = data[i, 8]
             last_atr = data[i, 9]
+
             self.trade_execution(price, last_RSI, last_atr, date, last_sma_fast, last_sma_slow)
             cash, trade = self.update_stoploss(price, last_atr, control_position, portfolio_value, control_portfolio_value)
             if num_of_years - current_year >= 1:
@@ -200,24 +202,23 @@ class SMA_Functions:
         utils.plot_results()
 def parameter_check(params):
         params_copy = params.copy()
-        if not len(params) == 8:
-            raise ValueError(f"parameter dict has {len(params)}. It needs exactly 8.")
         params_copy.pop("ticker")
         params_copy.pop("data_type")
-        fastSMA = params['fastSMA']
-        slowSMA = params['slowSMA']  
-        pos_sizing = params['pos_sizing']      
-        if fastSMA > slowSMA:
-            raise ValueError(f"fastSMA range ({fastSMA}) is greater than slowSMA range ({slowSMA}).")
-        if pos_sizing > 1:
-            raise ValueError(f"position sizing is greater than 100%.")
+        if 'fastSMA'and 'slowSMA' in params:
+            fastSMA = params['fastSMA']
+            slowSMA = params['slowSMA']  
+            if fastSMA >= slowSMA:
+                raise ValueError(f"fastSMA range ({fastSMA}) is greater than slowSMA range ({slowSMA}).")
+        if 'pos_sizing' in params:
+            pos_sizing = params['pos_sizing']      
+            if pos_sizing > 1:
+                raise ValueError(f"position sizing is greater than 100%.")
+            
         for key, value in params_copy.items():
             if not isinstance (value, (float, int)):
                 raise TypeError(f"{key} is not a number. It is currently set to {value}")
 if __name__ == "__main__":
-    params = {"capital": 5000, "fastSMA": 10, "slowSMA": 50, 
-          "rsi_limit": 60, "pos_sizing": 0.1, "atr_range": 2,
+    params = {
           "ticker": "NVDA", "data_type": "YF"}
-    parameter_check(params)
     SMA = SMA_Functions(params)
     SMA.run_backtest()
