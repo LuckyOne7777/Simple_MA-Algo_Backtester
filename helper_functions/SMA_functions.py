@@ -2,9 +2,7 @@
 import pandas as pd
 import numpy as np
 import time
-from numba import jit 
 import math
-import line_profiler
 from helper_functions.utils import Utils
 from helper_functions.indicators import Indicators
 from helper_functions.get_data import Get_Historical_Data
@@ -201,6 +199,6 @@ class SMA_Functions:
         utils.plot_results()
 
 if __name__ == "__main__":
-    params = {}
+    params = {'ticker': 'AMZ'}
     SMA = SMA_Functions(params)
     SMA.run_backtest()
