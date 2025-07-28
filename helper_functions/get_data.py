@@ -10,11 +10,10 @@ import yfinance as yf
 class Get_Historical_Data:
 
     @staticmethod
-    def grab_Alpaca_data():
+    def grab_Alpaca_data(ticker):
         api_key = os.getenv("ALPACA_API_KEY")
         secret_api_key = os.getenv("ALPACA_SECRET_KEY")
         client = StockHistoricalDataClient(api_key, secret_api_key)
-        ticker = input("What is the ticker symbol? ").upper()
         root = os.path.expanduser("~/Simple Algorithm Backtester")
         folder = os.path.join(root, "data")
         file = f"{ticker} Alpaca Data.parquet"
@@ -23,7 +22,7 @@ class Get_Historical_Data:
         if os.path.exists(file_path):
             print(f"Grabbing existing data from {file}")
             max_timeframe_data = pd.read_parquet(file_path)
-            if max_timeframe_data.index.name != "timestamp":
+            if not max_timeframe_data.index.name == "timestamp":
                 if "timestamp" in max_timeframe_data.columns:
                     max_timeframe_data.set_index("timestamp", inplace=True)
         else:
@@ -84,12 +83,11 @@ Enter 1 or 2: """)
         if valid_data.empty or len(valid_data) < 200:
             raise KeyError(f"No sufficient data for {ticker}")
 
-        return valid_data, ticker
+        return valid_data
 
     @staticmethod
-    def grab_YFdata():
+    def grab_YFdata(ticker):
         try:
-            ticker = input("What is the ticker symbol? ").upper()
             root = os.path.expanduser("~/Simple Algorithm Backtester")
             folder = os.path.join(root, "data")
             file = f"{ticker} YF Data.parquet"
@@ -135,31 +133,30 @@ Enter 1 or 2: """)
             end_date = f"{input('End year (YYYY): ')}-{input('End month (MM): ')}-{input('End day (DD): ')}"
             data = max_timeframe[(max_timeframe.index >= start_date) & (max_timeframe.index <= end_date)].reset_index()
 
-        return data, ticker
+        return data
 
     @staticmethod
-    def choose_data():
-        user_data_choice = 0
-        while user_data_choice not in ["1", "2"]:
-            user_data_choice = input("""Would you like historical data from Alpaca or Yahoo Finance?
-1 - Alpaca
-2 - YahooFinance
-Please enter 1 or 2: """)
+    def choose_data(ticker, data_type):
+        
 
-            if user_data_choice == "1":
-                data, ticker = Get_Historical_Data.grab_Alpaca_data()
-            elif user_data_choice == "2":
-                data, ticker = Get_Historical_Data.grab_YFdata()
+        if data_type == "Alpaca":
+            data = Get_Historical_Data.grab_Alpaca_data(ticker)
+        elif data_type == "YF":
+            data = Get_Historical_Data.grab_YFdata(ticker)
+        else:
+            raise ValueError(f"the data type you requested ({data_type}) is not supported. Try Alpaca or YF")
 
-        if user_data_choice == "2":
+        if data_type == "YF":
             data.rename(columns={"Close": "close", "Date": "date", "High": "high", "Low": "low", "Volume": 'volume', "Open": 'open'}, inplace=True)
-        elif user_data_choice == "1":
+        elif data_type == "Alpaca":
             data['date'] = pd.to_datetime(data['timestamp']).dt.date
             data.drop(columns=['timestamp', 'vwap', 'trade_count', 'symbol'], inplace=True)
             columns = ['date', 'close', 'high', 'low', 'open', 'volume']
             data = data[columns]
+        if not isinstance(data, pd.DataFrame):
+            data = pd.DataFrame([data])
         data = data.dropna()
         if len(data) < 200 or len(data) == 0:
             raise ValueError(f"Not enough data for indicators. Data only has {len(data)}.")
 
-        return data, ticker, user_data_choice
+        return data

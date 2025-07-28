@@ -1,1 +1,2 @@
 symbol,start,end,start_val,end_val,winner,version,cagr,trades,win_%,avg_win,loss_%,avg_loss,median,average,max_drawdown,running_max
+NVDA,1999-04-05,2025-07-28,"$5,000","$3,229,009",Benchmark,V2,27.08%,"1,987.0",48.40%,"$4,450.00",51.60%,-$310.00,"$56,086","$311,191",-51.95%,"$3,229,009"

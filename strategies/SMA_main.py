@@ -1,6 +1,9 @@
-from helper_functions.SMA_functions import complete_SMA_function
-
-complete_SMA_function()
+from helper_functions.SMA_functions import SMA_Functions
+params = {"capital": 5000, "fastSMA": 10, "slowSMA": 50, 
+          "rsi_limit": 60, "pos_sizing": 0.1, "atr_range": 2,
+          "ticker": "NVDA", "data_type": "Alpaca"}
+sma = SMA_Functions(params)
+sma.run_backtest()
 
 # === TODO ===:
 
