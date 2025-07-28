@@ -9,6 +9,7 @@ import warnings
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
+
 #generate the defination for simple python classes (may expand on this)
 def class_generator(*args, **kwargs):
     vars = args

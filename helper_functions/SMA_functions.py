@@ -8,11 +8,11 @@ import line_profiler
 from helper_functions.utils import Utils
 from helper_functions.indicators import Indicators
 from helper_functions.get_data import Get_Historical_Data
-
+import helper_functions.other as other
 class SMA_Functions:
 
     def __init__(self, params):
-        
+        other.parameter_check(params)
         self.trade = np.empty((0, 12), dtype=object)
         self.cash = params.get('capital', 10_000)
         self.fastSMA = params.get('fastSMA', 50)
@@ -122,10 +122,9 @@ class SMA_Functions:
 # Handles the entire SMA backtest
 #@profile #
     def run_backtest(self):
-        parameter_check(params)
+
         data = Get_Historical_Data.choose_data(self.ticker, self.data_type)
 
-        print(data)
         data = data.dropna()
         if len(data) < 200:
             raise ValueError(f"Backtest needs at least 200 days and dataframe only has {len(data)}, Try increasing or checking timeframe format.")
@@ -200,25 +199,8 @@ class SMA_Functions:
         )
         utils.CSV_handling()
         utils.plot_results()
-def parameter_check(params):
-        params_copy = params.copy()
-        params_copy.pop("ticker")
-        params_copy.pop("data_type")
-        if 'fastSMA'and 'slowSMA' in params:
-            fastSMA = params['fastSMA']
-            slowSMA = params['slowSMA']  
-            if fastSMA >= slowSMA:
-                raise ValueError(f"fastSMA range ({fastSMA}) is greater than slowSMA range ({slowSMA}).")
-        if 'pos_sizing' in params:
-            pos_sizing = params['pos_sizing']      
-            if pos_sizing > 1:
-                raise ValueError(f"position sizing is greater than 100%.")
-            
-        for key, value in params_copy.items():
-            if not isinstance (value, (float, int)):
-                raise TypeError(f"{key} is not a number. It is currently set to {value}")
+
 if __name__ == "__main__":
-    params = {
-          "ticker": "NVDA", "data_type": "YF"}
+    params = {}
     SMA = SMA_Functions(params)
     SMA.run_backtest()
