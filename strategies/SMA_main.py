@@ -35,4 +35,6 @@ sma.run_backtest()
         # SMAtrade_execution()
         # update_stoploss()
 
- 
+    # other.py
+
+        # parameter_check()

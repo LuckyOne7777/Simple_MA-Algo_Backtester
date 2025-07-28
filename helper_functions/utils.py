@@ -160,7 +160,7 @@ class Utils:
         print(secondary_summary.to_string(index=False))
         Utils.line_break()
         print(f"Results saved successfully! Finshed with {self.ticker}")
-        if self.user_data_choice == "1":
+        if self.user_data_choice == "Alpaca":
             print("Note: Alpaca data may not account for stock splits. This may lead to misleading results.")
 
         
